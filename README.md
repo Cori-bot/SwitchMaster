@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="/images/logo.png" alt="Logo" title="a title" width="100"/>
+</p>
+
 # SwitchMaster
 
 SwitchMaster est une application développée par Coridor pour automatiser le changement de compte Riot Games rapidement et efficacement.
