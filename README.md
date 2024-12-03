@@ -13,7 +13,7 @@ SwitchMaster est une application développée par Coridor pour automatiser le ch
 
 ### Via Github
 
-1. Téléchargez le fichier `Install_SwitchMaster.exe` depuis la page des releases.
+1. Téléchargez le fichier [`Install_SwitchMaster.exe`](https://github.com/Cori-bot/SwitchMaster/releases/tag/v1.1) depuis la page des releases.
 2. Exécutez l'installateur et suivez les instructions à l'écran.
 
 ## Utilisation
