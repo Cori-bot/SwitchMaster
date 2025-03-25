@@ -18,7 +18,7 @@ SwitchMaster est une application permettant de gérer et changer rapidement entr
 
 ### Télécharger l'installateur
 
-1. Téléchargez le dernier installateur depuis la [page des releases](https://github.com/votreutilisateur/switchmaster/releases)
+1. Téléchargez le dernier installateur depuis la [page des releases](https://github.com/Cori-bot/SwitchMaster/releases/latest)
 2. Exécutez `SwitchMaster_Setup.exe`
 3. Suivez les instructions d'installation
 
