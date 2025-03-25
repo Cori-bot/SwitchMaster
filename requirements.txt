@@ -1,0 +1,7 @@
+customtkinter
+pillow
+psutil
+pyautogui
+pyperclip
+pywin32
+cryptography
