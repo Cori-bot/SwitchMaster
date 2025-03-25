@@ -30,6 +30,9 @@ class ClientFinder:
                     "C:/Riot Games/Riot Client/RiotClientServices.exe",
                     "C:/Program Files/Riot Games/Riot Client/RiotClientServices.exe",
                     "C:/Program Files (x86)/Riot Games/Riot Client/RiotClientServices.exe",
+                    "D:/Riot Games/Riot Client/RiotClientServices.exe",
+                    "D:/Program Files/Riot Games/Riot Client/RiotClientServices.exe",
+                    "D:/Program Files (x86)/Riot Games/Riot Client/RiotClientServices.exe",
                 ]
             },
             'valorant': {
@@ -38,7 +41,11 @@ class ClientFinder:
                     "C:/Riot Games/VALORANT/VALORANT.exe",
                     "C:/Program Files/Riot Games/VALORANT/VALORANT.exe",
                     "C:/Program Files (x86)/Riot Games/VALORANT/VALORANT.exe",
-                    "C:/Riot Games/VALORANT/live/VALORANT.exe"
+                    "C:/Riot Games/VALORANT/live/VALORANT.exe",
+                    "D:/Riot Games/VALORANT/VALORANT.exe",
+                    "D:/Program Files/Riot Games/VALORANT/VALORANT.exe",
+                    "D:/Program Files (x86)/Riot Games/VALORANT/VALORANT.exe",
+                    "D:/Riot Games/VALORANT/live/VALORANT.exe"
                 ]
             },
             'league': {
@@ -47,6 +54,9 @@ class ClientFinder:
                     "C:/Riot Games/League of Legends/LeagueClient.exe",
                     "C:/Program Files/Riot Games/League of Legends/LeagueClient.exe",
                     "C:/Program Files (x86)/Riot Games/League of Legends/LeagueClient.exe",
+                    "D:/Riot Games/League of Legends/LeagueClient.exe",
+                    "D:/Program Files/Riot Games/League of Legends/LeagueClient.exe",
+                    "D:/Program Files (x86)/Riot Games/League of Legends/LeagueClient.exe",
                 ]
             }
         }

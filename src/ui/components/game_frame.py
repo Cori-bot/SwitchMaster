@@ -8,6 +8,7 @@ import os
 from ...utils.window_utils import resource_path, create_rounded_rectangle
 from ..components.account_dialog import AccountDialog
 from ..components.switch_confirmation_dialog import SwitchConfirmationDialog
+from ...utils.resource_path import resource_path
 
 class GameFrame(ctk.CTkFrame):
     """
@@ -57,7 +58,7 @@ class GameFrame(ctk.CTkFrame):
     def load_game_logo(self):
         """Load the game logo."""
         game_id = self._normalize_game_id()
-        logo_path = os.path.join("assets", "images", f"{game_id}.png")
+        logo_path = resource_path(os.path.join("assets", "images", f"{game_id}.png"))
         
         try:
             if os.path.exists(logo_path):
@@ -70,10 +71,12 @@ class GameFrame(ctk.CTkFrame):
                     size=(24, 24)
                 )
             else:
-                print(f"Logo non trouvé: {logo_path}")
+                if self.logger:
+                    self.logger.warning(f"Logo non trouvé: {logo_path}")
                 self.game_logo = None
         except Exception as e:
-            print(f"Erreur lors du chargement du logo {game_id}: {str(e)}")
+            if self.logger:
+                self.logger.error(f"Erreur lors du chargement du logo {game_id}: {str(e)}")
             self.game_logo = None
         
     def _normalize_game_id(self):

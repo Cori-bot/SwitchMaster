@@ -72,7 +72,10 @@ class Application:
     def load_images(self):
         """Load application images."""
         images = {}
-        image_dir = os.path.join("assets", "images")
+        image_dir = "assets/images"
+        
+        # Import the resource path utility
+        from ..utils.resource_path import resource_path
         
         # Image specifications
         image_specs = {
@@ -88,7 +91,10 @@ class Application:
         # Load each image
         for name, (filename, size) in image_specs.items():
             try:
-                path = os.path.join(image_dir, filename)
+                # Utiliser resource_path pour résoudre le chemin correct
+                path = resource_path(os.path.join(image_dir, filename))
+                self.logger.debug(f"Chargement de l'image: {path}")
+                
                 if os.path.exists(path):
                     image = Image.open(path)
                     if size:
@@ -98,21 +104,31 @@ class Application:
                         dark_image=image,
                         size=size
                     )
+                else:
+                    self.logger.warning(f"❌ Image non trouvée: {path}")
             except Exception as e:
-                self.logger.error(f"Erreur lors du chargement de {filename}: {str(e)}")
+                self.logger.error(f"❌ Erreur lors du chargement de {filename}: {str(e)}")
         
         return images
     
     def set_application_icon(self, window):
         """Set the application icon."""
         try:
-            icon_path = resource_path(os.path.join('assets', 'images', 'logo.png'))
+            from ..utils.resource_path import resource_path
+            icon_path = resource_path(os.path.join('assets', 'images', 'logo.ico'))
+            self.logger.debug(f"Chemin de l'icône: {icon_path}")
+            
             if os.path.exists(icon_path):
                 set_icon(window, icon_path)
             else:
-                self.logger.warning(f"❌ Icon not found: {icon_path}")
+                # Essayer avec l'extension .png si le .ico n'est pas trouvé
+                icon_path = resource_path(os.path.join('assets', 'images', 'logo.png'))
+                if os.path.exists(icon_path):
+                    set_icon(window, icon_path)
+                else:
+                    self.logger.warning(f"❌ Icône non trouvée: {icon_path}")
         except Exception as e:
-            self.logger.error(f"❌ Error setting application icon: {str(e)}")
+            self.logger.error(f"❌ Erreur lors de la définition de l'icône: {str(e)}")
     
     def run(self):
         """Run the application."""

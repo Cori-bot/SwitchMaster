@@ -5,3 +5,4 @@ pyautogui
 pyperclip
 pywin32
 cryptography
+auto-py-to-exe

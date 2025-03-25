@@ -5,7 +5,7 @@ Provides helper functions for window management and styling.
 import os
 import sys
 import ctypes
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageTk
 import customtkinter as ctk
 
 
@@ -79,14 +79,24 @@ def set_dark_title_bar(window):
 def set_window_icon(window):
     """Set the window icon."""
     try:
-        if not hasattr(set_window_icon, '_first_call'):
-            set_window_icon._first_call = True
-            icon_path = resource_path("assets/images/logo.ico")
+        # Importer resource_path si ce n'est pas déjà fait
+        # Cette fonction doit être dans ce module
+        icon_path = resource_path(os.path.join("assets", "images", "logo.ico"))
+        
+        try:
             window.iconbitmap(icon_path)
-        else:
-            icon_path = resource_path("assets/images/logo.ico")
-            window.iconbitmap(icon_path)
+        except:
+            # Essayer avec le format PNG si le ICO ne fonctionne pas
+            icon_path_png = resource_path(os.path.join("assets", "images", "logo.png"))
+            if os.path.exists(icon_path_png):
+                # Utiliser le PNG comme alternative
+                icon_image = Image.open(icon_path_png)
+                window.iconphoto(True, ImageTk.PhotoImage(icon_image))
+            else:
+                # Si tout échoue, utiliser une icône par défaut
+                pass
     except Exception as e:
+        # Ignorer l'erreur, ce n'est pas critique
         pass
 
 

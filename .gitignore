@@ -37,6 +37,11 @@ venv.bak/
 *.msi
 *.app
 *.dmg
+output/
+auto_py_to_exe_config.json
+build.py
+pyi_hook.py
+installer.nsi
 
 # Logs et bases de données
 *.log
