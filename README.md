@@ -1,7 +1,6 @@
 <p align="center">
   <img src="assets/images/logo.png" alt="Logo" width="100" align="center"/>
 </p>
-  <img src="assets/switchmaster.png" alt="Application"/>
 
 # SwitchMaster
 
