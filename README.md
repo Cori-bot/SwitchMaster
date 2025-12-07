@@ -1,3 +1,5 @@
+# Projet déprecier --> [nouveau](https://github.com/Cori-bot/SwitchMaster-electron) 
+
 <p align="center">
   <img src="assets/images/logo.png" alt="Logo" width="100" align="center"/>
 </p>
@@ -25,3 +27,4 @@ SwitchMaster est une application permettant de gérer et changer rapidement entr
 ## Licence
 
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
