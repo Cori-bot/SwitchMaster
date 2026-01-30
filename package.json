@@ -19,7 +19,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "src/assets/logo.ico"
+      "icon": "src/assets/switchmaster/switchmaster-icon.png"
     },
     "nsis": {
       "oneClick": false,
