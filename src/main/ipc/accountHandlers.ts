@@ -3,6 +3,7 @@ import { Account } from "../../shared/types";
 import { accountSchema } from "../../shared/validation";
 import { safeHandle } from "./utils";
 import { AccountService } from "../services/AccountService";
+import { parsePayload, idSchema, idArraySchema } from "./schemas";
 
 export function registerAccountHandlers(
   getMainWindow: () => BrowserWindow | null,
@@ -25,10 +26,10 @@ export function registerAccountHandlers(
 
   safeHandle("get-accounts", async () => await accountService.getAccounts());
 
-  safeHandle(
-    "get-account-credentials",
-    async (_e, id) => await accountService.getCredentials(id as string),
-  );
+  safeHandle("get-account-credentials", async (_e, id) => {
+    const validId = parsePayload(idSchema, id, "get-account-credentials");
+    return await accountService.getCredentials(validId);
+  });
 
   safeHandle("add-account", async (_e, data) => {
     const validatedData = accountSchema.parse(data);
@@ -47,20 +48,21 @@ export function registerAccountHandlers(
   });
 
   safeHandle("delete-account", async (_e, id) => {
-    const res = await accountService.deleteAccount(id as string);
+    const validId = parsePayload(idSchema, id, "delete-account");
+    const res = await accountService.deleteAccount(validId);
     await notifyUpdate();
     return res;
   });
 
   safeHandle("reorder-accounts", async (_e, idsRaw) => {
-    const ids = idsRaw as string[];
+    const ids = parsePayload(idArraySchema, idsRaw, "reorder-accounts");
     const res = await accountService.reorderAccounts(ids);
     await notifyUpdate();
     return res;
   });
 
   safeHandle("fetch-account-stats", async (_e, idRaw) => {
-    const id = idRaw as string;
+    const id = parsePayload(idSchema, idRaw, "fetch-account-stats");
     const stats = await accountService.fetchAndSaveStats(id);
     await notifyUpdate();
     return stats;

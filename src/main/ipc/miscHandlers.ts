@@ -1,9 +1,18 @@
 import { ipcMain, dialog, app, BrowserWindow } from "electron";
+import path from "path";
+import crypto from "crypto";
+import fs from "fs-extra";
 import { safeHandle } from "./utils";
 import { IpcContext } from "./types";
 import { devLog, devError } from "../logger";
 import { AccountService } from "../services/AccountService";
 import { ConfigService } from "../services/ConfigService";
+import {
+  parsePayload,
+  booleanSchema,
+  logToMainSchema,
+  quitChoiceSchema,
+} from "./schemas";
 
 export function registerMiscHandlers(
   getMainWindow: () => BrowserWindow | null,
@@ -20,13 +29,37 @@ export function registerMiscHandlers(
         { name: "Images", extensions: ["jpg", "png", "gif", "jpeg", "webp"] },
       ],
     });
-    return canceled ? null : filePaths[0];
+    if (canceled || !filePaths[0]) return null;
+
+    // Copy the selected image into userData/account-images/ so the sm-img
+    // protocol can whitelist a single directory and block FS exfiltration.
+    try {
+      const sourcePath = filePaths[0];
+      const ext = path.extname(sourcePath).toLowerCase() || ".png";
+      const destDir = path.join(app.getPath("userData"), "account-images");
+      await fs.ensureDir(destDir);
+      const destPath = path.join(destDir, `${crypto.randomUUID()}${ext}`);
+      await fs.copy(sourcePath, destPath);
+      return destPath;
+    } catch (err) {
+      devError("select-account-image: copy failed:", err);
+      return null;
+    }
   });
 
   ipcMain.removeAllListeners("log-to-main");
-  ipcMain.on("log-to-main", (_e, { level, args }) => {
-    const prefix = `[Renderer ${level.toUpperCase()}]`;
-    devLog(`${prefix}`, ...args);
+  ipcMain.on("log-to-main", (_e, payload) => {
+    try {
+      const { level, args } = parsePayload(
+        logToMainSchema,
+        payload,
+        "log-to-main",
+      );
+      const prefix = `[Renderer ${level.toUpperCase()}]`;
+      devLog(`${prefix}`, ...args);
+    } catch (err) {
+      devError("log-to-main: invalid payload", err);
+    }
   });
 
   safeHandle("get-status", async () => {
@@ -43,7 +76,8 @@ export function registerMiscHandlers(
 
   safeHandle("get-auto-start", () => context.getAutoStartStatus());
   safeHandle("set-auto-start", (_e, enable) => {
-    context.setAutoStart(enable as boolean);
+    const validated = parsePayload(booleanSchema, enable, "set-auto-start");
+    context.setAutoStart(validated);
     return true;
   });
 
@@ -56,10 +90,11 @@ export function registerMiscHandlers(
   });
 
   safeHandle("handle-quit-choice", async (_e, dataRaw: any) => {
-    const { action, dontShowAgain } = dataRaw as {
-      action: "quit" | "minimize";
-      dontShowAgain: boolean;
-    };
+    const { action, dontShowAgain } = parsePayload(
+      quitChoiceSchema,
+      dataRaw,
+      "handle-quit-choice",
+    );
 
     if (action === "quit") {
       (app as any).isQuitting = true;

@@ -14,11 +14,28 @@ export class SecurityService {
     return `${salt}:${hash}`;
   }
 
+  private safeCompare(a: string, b: string): boolean {
+    // Constant-time comparison. If lengths differ, perform a dummy compare
+    // against `a` to avoid leaking length-based timing information, then
+    // return false.
+    const bufA = Buffer.from(a, "utf8");
+    const bufB = Buffer.from(b, "utf8");
+    if (bufA.length !== bufB.length) {
+      try {
+        crypto.timingSafeEqual(bufA, bufA);
+      } catch {
+        /* noop */
+      }
+      return false;
+    }
+    return crypto.timingSafeEqual(bufA, bufB);
+  }
+
   private verifyPinInternal(pin: string, storedHash: string): boolean {
     if (!storedHash.includes(":")) {
       // Legacy format (SHA-256 direct)
       const legacyHash = crypto.createHash("sha256").update(pin).digest("hex");
-      return legacyHash === storedHash;
+      return this.safeCompare(legacyHash, storedHash);
     }
 
     const [salt, hash] = storedHash.split(":");
@@ -26,7 +43,7 @@ export class SecurityService {
       .createHmac("sha256", salt)
       .update(pin)
       .digest("hex");
-    return currentHash === hash;
+    return this.safeCompare(currentHash, hash);
   }
 
   public async verifyPin(pin: string): Promise<boolean> {

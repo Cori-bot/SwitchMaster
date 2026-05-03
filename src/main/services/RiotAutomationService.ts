@@ -228,8 +228,8 @@ export class RiotAutomationService implements ILauncherService {
   public monitorRiotProcess(
     mainWindow: BrowserWindow | null,
     onClosed?: () => void,
-  ) {
-    setInterval(async () => {
+  ): NodeJS.Timeout {
+    return setInterval(async () => {
       try {
         const isRunning = await this.isRiotClientRunning();
         if (!isRunning) {

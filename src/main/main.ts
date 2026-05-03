@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol, net } from "electron";
+import { app, BrowserWindow, protocol, net, session, ipcMain } from "electron";
 import path from "path";
 import { pathToFileURL } from "url";
 import { devLog, devError } from "./logger";
@@ -10,6 +10,10 @@ import { RiotAutomationService } from "./services/RiotAutomationService";
 import { SessionService } from "./services/SessionService";
 import { SystemService } from "./services/SystemService";
 import { StatsService } from "./services/StatsService";
+import { DiscordRpcService } from "./services/DiscordRpcService";
+
+// TODO: Replace with the real Discord application client ID before release.
+const DISCORD_CLIENT_ID = "REPLACE_WITH_REAL_CLIENT_ID";
 
 // Capture globale des erreurs fatales (Production Stability)
 process.on("uncaughtException", (err) => {
@@ -44,6 +48,28 @@ let mainWindow: BrowserWindow | null = null;
 const STATS_REFRESH_INTERVAL_MS = 120000;
 const INITIAL_STATS_REFRESH_DELAY_MS = 5000;
 
+// Track intervals and IPC listener channels for cleanup at quit time.
+const trackedIntervals: NodeJS.Timeout[] = [];
+const trackedIpcChannels: string[] = ["log-to-main"];
+
+app.on("before-quit", () => {
+  for (const id of trackedIntervals) {
+    try {
+      clearInterval(id);
+    } catch {
+      /* noop */
+    }
+  }
+  trackedIntervals.length = 0;
+  for (const channel of trackedIpcChannels) {
+    try {
+      ipcMain.removeAllListeners(channel);
+    } catch {
+      /* noop */
+    }
+  }
+});
+
 // Set App Name and UserData path before any complex logic
 app.name = "switchmaster";
 const userDataPath = path.join(app.getPath("appData"), "switchmaster");
@@ -63,13 +89,33 @@ const configService = new ConfigService();
 const securityService = new SecurityService(configService);
 const statsService = new StatsService();
 const accountService = new AccountService(securityService, statsService);
-const riotAutomationService = new RiotAutomationService(configService, securityService);
+const riotAutomationService = new RiotAutomationService(
+  configService,
+  securityService,
+);
 const sessionService = new SessionService(
   accountService,
   riotAutomationService,
   configService,
 );
 const systemService = new SystemService();
+const discordRpcService = new DiscordRpcService();
+
+sessionService.on("account-switched", ({ account }) => {
+  discordRpcService
+    .setPresence({
+      details: `Playing as ${account?.name ?? "Unknown"}`,
+      state:
+        account?.gameType === "valorant" ? "Valorant" : "League of Legends",
+      largeImageKey: "switchmaster",
+      largeImageText: "SwitchMaster",
+    })
+    .catch(() => undefined);
+});
+
+app.on("before-quit", () => {
+  discordRpcService.stop().catch(() => undefined);
+});
 
 const launcherFactory = new LauncherFactory([riotAutomationService]);
 
@@ -120,6 +166,38 @@ async function initApp() {
     });
 
     await app.whenReady();
+
+    // ---------- Security hardening ----------
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      const csp = [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: sm-img:",
+        "font-src 'self' data:",
+        "connect-src 'self' https: wss:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'",
+      ].join("; ");
+      const responseHeaders = { ...(details.responseHeaders || {}) };
+      for (const key of Object.keys(responseHeaders)) {
+        if (key.toLowerCase() === "content-security-policy") {
+          delete responseHeaders[key];
+        }
+      }
+      responseHeaders["Content-Security-Policy"] = [csp];
+      callback({ responseHeaders });
+    });
+
+    session.defaultSession.setPermissionRequestHandler((_wc, _p, cb) =>
+      cb(false),
+    );
+    // ---------- /Security hardening ----------
+
+    if (configService.getConfig().enableDiscordRpc) {
+      discordRpcService.start(DISCORD_CLIENT_ID).catch(() => undefined);
+    }
 
     // Enregistrement du protocole sm-img pour les images locales
     protocol.handle("sm-img", (request) => {
@@ -269,12 +347,15 @@ async function initApp() {
     setupUpdater(mainWindow);
     await (global as any).refreshTray();
 
-    riotAutomationService.monitorRiotProcess(mainWindow);
+    const monitorIntervalId =
+      riotAutomationService.monitorRiotProcess(mainWindow);
+    if (monitorIntervalId) trackedIntervals.push(monitorIntervalId);
 
-    setInterval(
+    const statsIntervalId = setInterval(
       () => accountService.refreshAllAccountStats(mainWindow),
       STATS_REFRESH_INTERVAL_MS,
     );
+    trackedIntervals.push(statsIntervalId);
     setTimeout(
       () => accountService.refreshAllAccountStats(mainWindow),
       INITIAL_STATS_REFRESH_DELAY_MS,

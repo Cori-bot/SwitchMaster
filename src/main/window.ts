@@ -32,6 +32,7 @@ export function createWindow(
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: path.join(__dirname, "preload.js"),
     },
     backgroundColor: "#121212",
@@ -39,8 +40,21 @@ export function createWindow(
     show: false,
     autoHideMenuBar: true,
     icon: app.isPackaged
-      ? path.join(process.resourcesPath, "assets", "switchmaster", "switchmaster-icon.png")
-      : path.join(__dirname, "..", "..", "src", "assets", "switchmaster", "switchmaster-icon.png"),
+      ? path.join(
+          process.resourcesPath,
+          "assets",
+          "switchmaster",
+          "switchmaster-icon.png",
+        )
+      : path.join(
+          __dirname,
+          "..",
+          "..",
+          "src",
+          "assets",
+          "switchmaster",
+          "switchmaster-icon.png",
+        ),
   });
 
   if (isDev) {
@@ -112,8 +126,21 @@ export async function updateTrayMenu(
   accountService: AccountService,
 ) {
   const iconPath = app.isPackaged
-    ? path.join(process.resourcesPath, "assets", "switchmaster", "switchmaster-icon.png")
-    : path.join(__dirname, "..", "..", "src", "assets", "switchmaster", "switchmaster-icon.png");
+    ? path.join(
+        process.resourcesPath,
+        "assets",
+        "switchmaster",
+        "switchmaster-icon.png",
+      )
+    : path.join(
+        __dirname,
+        "..",
+        "..",
+        "src",
+        "assets",
+        "switchmaster",
+        "switchmaster-icon.png",
+      );
 
   if (!trayRef) {
     trayRef = new Tray(iconPath);

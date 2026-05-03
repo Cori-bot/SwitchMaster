@@ -3,6 +3,7 @@ import { safeHandle } from "./utils";
 import { SessionService } from "../services/SessionService";
 import { RiotAutomationService } from "../services/RiotAutomationService";
 import { LaunchGameData } from "./types";
+import { parsePayload, idSchema, launchGameDataSchema } from "./schemas";
 
 export function registerRiotHandlers(
   getWin: () => BrowserWindow | null,
@@ -26,7 +27,8 @@ export function registerRiotHandlers(
   );
 
   safeHandle("switch-account", async (_e, id) => {
-    await sessionService.switchAccount(id as string);
+    const validId = parsePayload(idSchema, id, "switch-account");
+    await sessionService.switchAccount(validId);
 
     const status = await getStatus();
     const win = getWin();
@@ -34,14 +36,15 @@ export function registerRiotHandlers(
       win.webContents.send("status-updated", status);
     }
 
-    return { success: true, id };
+    return { success: true, id: validId };
   });
 
   safeHandle("launch-game", async (_e, data: LaunchGameData | string) => {
-    if (typeof data === "string") {
-      await launchGame({ launcherType: "riot", gameId: data });
+    const validated = parsePayload(launchGameDataSchema, data, "launch-game");
+    if (typeof validated === "string") {
+      await launchGame({ launcherType: "riot", gameId: validated });
     } else {
-      await launchGame(data);
+      await launchGame(validated as LaunchGameData);
     }
     return true;
   });
