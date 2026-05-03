@@ -35,10 +35,11 @@ export class SessionService extends EventEmitter {
       }
 
       // 4. Launch Riot Client
-      await this.automationService.launchClient(clientPath);
+      await this.automationService.launchClient();
+      void clientPath;
 
       // 5. Perform login automation
-      await this.automationService.login(
+      await this.automationService.loginLegacy(
         account.username || "",
         account.password || "",
       );
