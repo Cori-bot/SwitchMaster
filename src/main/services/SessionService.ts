@@ -1,15 +1,18 @@
 import path from "path";
+import { EventEmitter } from "events";
 import { AccountService } from "./AccountService";
 import { RiotAutomationService } from "./RiotAutomationService";
 import { ConfigService } from "./ConfigService";
 import { devLog, devError } from "../logger";
 
-export class SessionService {
+export class SessionService extends EventEmitter {
   constructor(
     private accountService: AccountService,
     private automationService: RiotAutomationService,
     private configService: ConfigService,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Orchestrates the switching of a Riot account
@@ -44,6 +47,7 @@ export class SessionService {
       await this.configService.saveConfig({ lastAccountId: accountId });
 
       devLog(`SessionService: Successfully switched to account ${accountId}`);
+      this.emit("account-switched", { accountId, account });
       return true;
     } catch (error) {
       devError(`SessionService: Failed to switch account ${accountId}:`, error);

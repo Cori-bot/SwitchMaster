@@ -24,6 +24,7 @@ export interface Config {
   showLaunchGamePopup?: boolean;
   activeDesignModule?: "classic" | "modern";
   autoUpdate?: boolean;
+  enableDiscordRpc?: boolean;
 }
 
 export interface Account {
