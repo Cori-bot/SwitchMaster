@@ -6,6 +6,7 @@ import { QuitModal } from "./components/Modals/QuitModal";
 import { UpdateModal } from "./components/Modals/UpdateModal";
 import { GPUConfirmModal } from "./components/Modals/GPUConfirmModal";
 import LaunchGameModal from "./components/Modals/LaunchGameModal";
+import CommandPalette from "./components/CommandPalette";
 
 import { useConfig } from "./hooks/useConfig";
 import { useAccountManager } from "./hooks/useAccountManager";
@@ -47,8 +48,13 @@ const App = () => {
     }
   };
 
-  const { status, updateInfo, isQuitModalOpen, setIsQuitModalOpen, closeUpdateModal } =
-    useAppIpc(handleSwitch);
+  const {
+    status,
+    updateInfo,
+    isQuitModalOpen,
+    setIsQuitModalOpen,
+    closeUpdateModal,
+  } = useAppIpc(handleSwitch);
   const { isLocked, verifyPin, setPin, disablePin, checkSecurityStatus } =
     useSecurity();
 
@@ -68,7 +74,7 @@ const App = () => {
 
   if (isLocked) {
     return (
-      <SecurityLock mode="verify" onVerify={verifyPin} onSet={async () => { }} />
+      <SecurityLock mode="verify" onVerify={verifyPin} onSet={async () => {}} />
     );
   }
 
@@ -97,7 +103,8 @@ const App = () => {
 
   // Resolve Design
   const activeDesignKey = (config.activeDesignModule || "classic") as DesignKey;
-  const CurrentDesign = DesignRegistry[activeDesignKey] || DesignRegistry.classic;
+  const CurrentDesign =
+    DesignRegistry[activeDesignKey] || DesignRegistry.classic;
 
   const systemActions = {
     openSecurityModal: setSecurityModalMode,
@@ -116,7 +123,7 @@ const App = () => {
         status={status}
         actions={actions}
         onSwitchSession={handleSwitch}
-        onOpenSettings={() => { }}
+        onOpenSettings={() => {}}
         systemActions={systemActions}
         updateInfo={updateInfo}
       />
@@ -170,6 +177,12 @@ const App = () => {
         onCancel={() => setGpuModalOpen(false)}
         onConfirm={confirmGpuChange}
         targetValue={gpuTargetValue}
+      />
+
+      <CommandPalette
+        accounts={accounts}
+        onSwitchSession={handleSwitch}
+        systemActions={systemActions}
       />
 
       <LaunchGameModal

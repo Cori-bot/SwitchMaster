@@ -10,6 +10,33 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const norm = id.replace(/\\/g, "/");
+          if (norm.includes("node_modules")) {
+            if (
+              norm.includes("/react-dom/") ||
+              norm.includes("/react/") ||
+              norm.includes("/scheduler/")
+            ) {
+              return "vendor-react";
+            }
+            if (
+              norm.includes("/framer-motion/") ||
+              norm.includes("/motion-dom/") ||
+              norm.includes("/motion-utils/")
+            ) {
+              return "vendor-motion";
+            }
+            return "vendor";
+          }
+          if (norm.includes("/designs/classic/")) return "design-classic";
+          if (norm.includes("/designs/modern/")) return "design-modern";
+          if (norm.includes("/designs/pro/")) return "design-pro";
+        },
+      },
+    },
   },
   resolve: {
     alias: {

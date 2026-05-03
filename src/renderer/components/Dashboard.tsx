@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { m, AnimatePresence, Variants } from "framer-motion";
 import AccountCard from "./AccountCard";
 import { PlusCircle } from "lucide-react";
 import { Account } from "../hooks/useAccounts";
@@ -65,7 +65,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   // Modal states
   // Modal states
   const [isReconnectOpen, setIsReconnectOpen] = React.useState(false);
-  const [reconnectAccount, setReconnectAccount] = React.useState<Account | null>(null);
+  const [reconnectAccount, setReconnectAccount] =
+    React.useState<Account | null>(null);
 
   // Synchroniser localAccounts avec les props quand on ne drag pas
   React.useEffect(() => {
@@ -104,7 +105,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     // Pass everything to parent
     onSwitch(id, autoLaunch);
   };
-
 
   const filteredAccounts = React.useMemo(() => {
     return localAccounts.filter((acc) => {
@@ -153,17 +153,18 @@ const Dashboard: React.FC<DashboardProps> = ({
     const relativeX = (e.clientX - rect.left) / rect.width;
     const relativeY = (e.clientY - rect.top) / rect.height;
 
-    const shouldSwap = sourceIndex < targetIndex
-      ? relativeX > 0.33 || relativeY > 0.33
-      : relativeX < 0.67 || relativeY < 0.67;
+    const shouldSwap =
+      sourceIndex < targetIndex
+        ? relativeX > 0.33 || relativeY > 0.33
+        : relativeX < 0.67 || relativeY < 0.67;
 
     if (shouldSwap) {
       const newAccounts = [...localAccounts];
       const [removed] = newAccounts.splice(sourceIndex, 1);
       newAccounts.splice(targetIndex, 0, removed);
 
-      const currentIds = localAccounts.map(a => a.id).join(',');
-      const newIds = newAccounts.map(a => a.id).join(',');
+      const currentIds = localAccounts.map((a) => a.id).join(",");
+      const newIds = newAccounts.map((a) => a.id).join(",");
 
       /* v8 ignore start */
       if (currentIds !== newIds) {
@@ -201,11 +202,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-
-
   if (accounts.length === 0) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex-1 flex flex-col items-center justify-center text-center p-8 h-full"
@@ -226,13 +225,13 @@ const Dashboard: React.FC<DashboardProps> = ({
         >
           Ajouter mon premier compte
         </button>
-      </motion.div>
+      </m.div>
     );
   }
 
   return (
     <div className="flex flex-col h-full">
-      <motion.div
+      <m.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -240,14 +239,18 @@ const Dashboard: React.FC<DashboardProps> = ({
       >
         <AnimatePresence mode="popLayout">
           {filteredAccounts.map((account) => (
-            <motion.div
+            <m.div
               key={account.id}
               variants={itemVariants}
               layout
               initial="hidden"
               animate="visible"
               exit={{ scale: 0.8, opacity: 0 }}
-              className={draggedId === account.id ? "opacity-50 scale-95 transition-all duration-200" : "transition-all duration-200"}
+              className={
+                draggedId === account.id
+                  ? "opacity-50 scale-95 transition-all duration-200"
+                  : "transition-all duration-200"
+              }
             >
               <AccountCard
                 account={account}
@@ -263,18 +266,20 @@ const Dashboard: React.FC<DashboardProps> = ({
                 onDrop={handleDrop}
                 onReconnect={handleReconnectRequest}
               />
-            </motion.div>
+            </m.div>
           ))}
         </AnimatePresence>
 
-        <motion.button
+        <m.button
           variants={itemVariants}
           whileHover={{ backgroundColor: "rgba(59, 130, 246, 0.08)" }}
           whileTap={{ scale: 0.98 }}
           onClick={onAddAccount}
           className={`group relative h-[220px] rounded-3xl border-2 border-dashed border-white/10 hover:border-blue-500/50 bg-white/2 transition-all ${ANIMATION_DURATION_LONG} flex flex-col items-center justify-center gap-4 overflow-hidden cursor-pointer`}
         >
-          <div className={`w-14 h-14 rounded-2xl bg-white/5 group-hover:bg-blue-500/20 flex items-center justify-center text-gray-400 group-hover:text-blue-400 transition-all ${ANIMATION_DURATION_LONG}`}>
+          <div
+            className={`w-14 h-14 rounded-2xl bg-white/5 group-hover:bg-blue-500/20 flex items-center justify-center text-gray-400 group-hover:text-blue-400 transition-all ${ANIMATION_DURATION_LONG}`}
+          >
             <PlusCircle size={ICON_SIZE_LARGE} />
           </div>
           <div className="text-center">
@@ -288,8 +293,8 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
             <div className="absolute -inset-24 bg-blue-500/10 blur-[60px] rounded-full" />
           </div>
-        </motion.button>
-      </motion.div>
+        </m.button>
+      </m.div>
 
       <ReconnectModal
         isOpen={isReconnectOpen}
@@ -298,8 +303,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         account={reconnectAccount}
         currentDelay={config?.riotLaunchDelay || 10000}
       />
-
-
     </div>
   );
 };
