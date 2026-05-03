@@ -1,18 +1,42 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
 
+/* Tailwind v4: expose tokens as utilities (bg-primary, rounded-md, etc.). */
+@theme {
+  --color-bg: var(--sm-color-bg);
+  --color-surface: var(--sm-color-surface);
+  --color-sidebar: var(--sm-color-sidebar);
+  --color-border-default: var(--sm-color-border);
+  --color-primary: var(--sm-color-primary);
+  --color-primary-hover: var(--sm-color-primary-hover);
+  --color-danger: var(--sm-color-danger);
+  --color-favorite: var(--sm-color-favorite);
+  --color-text-main: var(--sm-color-text);
+  --color-text-muted: var(--sm-color-text-muted);
+  --color-text-dim: var(--sm-color-text-dim);
+
+  --radius-sm: var(--sm-radius-sm);
+  --radius-md: var(--sm-radius-md);
+  --radius-lg: var(--sm-radius-lg);
+  --radius-pill: var(--sm-radius-pill);
+
+  --font-sans: var(--sm-font-sans);
+}
+
+/* Backwards-compat aliases for legacy usages in classic design. */
 :root {
-  --bg-dark: #121212;
-  --bg-card: #1e1e1e;
-  --bg-sidebar: #181818;
-  --primary: #ff4655;
-  --primary-hover: #ff5e6a;
-  --text-main: #ffffff;
-  --text-muted: #a0a0a0;
-  --border: #333333;
+  --bg-dark: var(--sm-color-bg);
+  --bg-card: var(--sm-color-surface);
+  --bg-sidebar: var(--sm-color-sidebar);
+  --primary: var(--sm-color-primary);
+  --primary-hover: var(--sm-color-primary-hover);
+  --text-main: var(--sm-color-text);
+  --text-muted: var(--sm-color-text-muted);
+  --border: var(--sm-color-border);
 }
 
 body {
-  @apply bg-[#121212] text-white font-sans antialiased overflow-hidden;
+  @apply bg-bg text-white font-sans antialiased overflow-hidden;
   margin: 0;
   height: 100vh;
 }

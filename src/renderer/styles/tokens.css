@@ -1,0 +1,58 @@
+/* =========================================================
+   SwitchMaster Design Tokens — single source of truth.
+   Shared across all designs (classic + modern).
+   Use via CSS vars or Tailwind utilities (configured in
+   the @theme block of index.css).
+   ========================================================= */
+
+:root {
+  /* Colors — surfaces */
+  --sm-color-bg: #121212;
+  --sm-color-surface: #1e1e1e;
+  --sm-color-sidebar: #181818;
+  --sm-color-border: #333333;
+
+  /* Colors — brand / accent */
+  --sm-color-primary: #ff4655;
+  --sm-color-primary-hover: #ff5e6a;
+
+  /* Colors — semantic */
+  --sm-color-danger: #ff6b6b;
+  --sm-color-danger-bg: rgba(255, 60, 60, 0.15);
+  --sm-color-danger-border: rgba(255, 60, 60, 0.3);
+  --sm-color-favorite: #ffd700;
+  --sm-color-favorite-hover: #ffed4e;
+
+  /* Colors — text */
+  --sm-color-text: #ffffff;
+  --sm-color-text-muted: #a0a0a0;
+  --sm-color-text-dim: rgba(255, 255, 255, 0.65);
+
+  /* Glass surfaces (modern) */
+  --sm-color-glass-bg: rgba(255, 255, 255, 0.08);
+  --sm-color-glass-border: rgba(255, 255, 255, 0.15);
+
+  /* Radii */
+  --sm-radius-sm: 8px;
+  --sm-radius-md: 16px;
+  --sm-radius-lg: 24px;
+  --sm-radius-pill: 999px;
+
+  /* Spacing scale */
+  --sm-space-1: 4px;
+  --sm-space-2: 8px;
+  --sm-space-3: 12px;
+  --sm-space-4: 16px;
+  --sm-space-5: 20px;
+  --sm-space-6: 24px;
+  --sm-space-8: 32px;
+
+  /* Typography */
+  --sm-font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Reserved hook for future light theme. The app is currently dark-only,
+   but exposing the selector now lets designs migrate without churn. */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
