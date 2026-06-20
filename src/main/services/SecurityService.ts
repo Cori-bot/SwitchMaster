@@ -5,6 +5,8 @@ import { devLog, devError } from "../logger";
 
 export class SecurityService {
   private readonly PIN_MIN_LENGTH = 4;
+  private readonly MAX_PIN_ATTEMPTS = 5;
+  private readonly LOCKOUT_BASE_MS = 30000;
 
   constructor(private configService: ConfigService) {}
 
@@ -51,19 +53,47 @@ export class SecurityService {
 
     const config = this.configService.getConfig();
     if (!config.security?.enabled || !config.security.pinHash) {
-      // Si la sécurité est désactivée ou pas de hash, on considère que c'est bon (ou on devrait ?)
-      // Le handler actuel renvoie true.
+      // Sécurité désactivée ou pas de hash : le handler considère que c'est bon.
       return true;
+    }
+
+    // Anti-brute-force : pendant la période de verrouillage, on refuse sans
+    // même comparer le PIN.
+    const now = Date.now();
+    if (config.security.lockedUntil && now < config.security.lockedUntil) {
+      devLog("SecurityService: PIN verification locked out");
+      return false;
     }
 
     const isValid = this.verifyPinInternal(pin, config.security.pinHash);
 
-    // Migration automatique
-    if (isValid && !config.security.pinHash.includes(":")) {
-      devLog("SecurityService: Migrating PIN to new hash format");
-      const newHash = this.hashPin(pin);
+    if (!isValid) {
+      const failedAttempts = (config.security.failedAttempts || 0) + 1;
+      const security = { ...config.security, failedAttempts };
+      // Backoff exponentiel une fois le seuil d'essais dépassé.
+      if (failedAttempts >= this.MAX_PIN_ATTEMPTS) {
+        const overflow = failedAttempts - this.MAX_PIN_ATTEMPTS;
+        security.lockedUntil = now + this.LOCKOUT_BASE_MS * 2 ** overflow;
+      }
+      await this.configService.saveConfig({ security });
+      return false;
+    }
+
+    // Succès : on réinitialise le compteur et on migre éventuellement le hash.
+    const needsMigration = !config.security.pinHash.includes(":");
+    const hadFailures =
+      !!config.security.failedAttempts || !!config.security.lockedUntil;
+    if (needsMigration || hadFailures) {
+      if (needsMigration) {
+        devLog("SecurityService: Migrating PIN to new hash format");
+      }
       await this.configService.saveConfig({
-        security: { ...config.security, pinHash: newHash },
+        security: {
+          ...config.security,
+          pinHash: needsMigration ? this.hashPin(pin) : config.security.pinHash,
+          failedAttempts: 0,
+          lockedUntil: 0,
+        },
       });
     }
 
@@ -111,25 +141,28 @@ export class SecurityService {
     return !!(config.security && config.security.enabled);
   }
 
-  // Secure Encryption/Decryption
+  // Secure Encryption/Decryption (s'appuie sur DPAPI/Keychain via safeStorage)
   public encryptData(data: string): string {
-    if (safeStorage && safeStorage.isEncryptionAvailable()) {
-      return safeStorage.encryptString(data).toString("base64");
-    } else {
-      return Buffer.from(data).toString("base64");
+    if (!safeStorage || !safeStorage.isEncryptionAvailable()) {
+      // On refuse de stocker des identifiants : sans chiffrement OS, un fallback
+      // base64 serait du clair trivialement réversible. Mieux vaut échouer net.
+      throw new Error(
+        "Chiffrement sécurisé indisponible : impossible de stocker les identifiants.",
+      );
     }
+    return safeStorage.encryptString(data).toString("base64");
   }
 
   public decryptData(encryptedData: string): string | null {
-    if (safeStorage && safeStorage.isEncryptionAvailable()) {
-      try {
-        return safeStorage.decryptString(Buffer.from(encryptedData, "base64"));
-      } catch (e) {
-        devError("Decryption failed:", e);
-        return null;
-      }
-    } else {
-      return Buffer.from(encryptedData, "base64").toString("utf-8");
+    if (!safeStorage || !safeStorage.isEncryptionAvailable()) {
+      devError("Decryption unavailable: OS encryption not available");
+      return null;
+    }
+    try {
+      return safeStorage.decryptString(Buffer.from(encryptedData, "base64"));
+    } catch (e) {
+      devError("Decryption failed:", e);
+      return null;
     }
   }
 }

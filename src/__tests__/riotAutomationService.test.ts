@@ -26,14 +26,24 @@ vi.mock("../main/services/ConfigService");
 describe("RiotAutomationService", () => {
   let service: RiotAutomationService;
   let mockConfigService: ConfigService;
+  let mockSecurityService: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockConfigService = new ConfigService();
     (mockConfigService.getRiotPath as any).mockReturnValue("p");
+    (mockConfigService.getConfig as any).mockReturnValue({
+      riotLaunchDelay: 10000,
+    });
 
-    service = new RiotAutomationService(mockConfigService);
+    // decryptData renvoie une valeur non-null pour username ET password,
+    // sinon login() lève désormais une erreur.
+    mockSecurityService = {
+      decryptData: vi.fn((v: string) => v),
+    };
+
+    service = new RiotAutomationService(mockConfigService, mockSecurityService);
 
     (cp.exec as any).mockImplementation((c, o, cb) => {
       const callback = typeof o === "function" ? o : cb;
@@ -93,6 +103,7 @@ describe("RiotAutomationService", () => {
   });
 
   it("login success", async () => {
+    (fs.pathExists as any).mockResolvedValue(true);
     const mockOn = vi.fn();
     (cp.spawn as any).mockReturnValue({
       stdout: {
@@ -110,9 +121,12 @@ describe("RiotAutomationService", () => {
       return { on: mockOn };
     });
 
-    await expect(
-      service.login({ username: "u", password: "p" }),
-    ).resolves.not.toThrow();
+    // login() enchaîne plusieurs `await wait(...)` (killProcesses 2000ms +
+    // riotLaunchDelay 10000ms) sous fake timers. On récupère la promesse sans
+    // l'await, on avance les timers, puis on l'attend.
+    const loginPromise = service.login({ username: "u", password: "p" });
+    await vi.advanceTimersByTimeAsync(12000);
+    await expect(loginPromise).resolves.not.toThrow();
     expect(clipboard.clear).toHaveBeenCalled();
   });
 

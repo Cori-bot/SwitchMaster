@@ -26,7 +26,9 @@ export const useConfig = () => {
       );
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
   }, []);
 
   const updateConfig = async (newConfig: Partial<Config>) => {

@@ -1,6 +1,6 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import App from "../App";
-import { DesignProvider } from "../contexts/DesignContext";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 // Mock des images
@@ -63,18 +63,46 @@ vi.mock("../hooks/useAppIpc", () => ({
 vi.mock("../components/LoadingScreen", () => ({
   default: () => <div data-testid="ready">READY</div>,
 }));
-vi.mock("framer-motion", () => ({
-  motion: { div: ({ children }: any) => <div>{children}</div> },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
+vi.mock("framer-motion", () => {
+  // Proxy : n'importe quel tag (m.div, motion.button, ...) devient un
+  // composant passe-plat qui ignore les props d'animation.
+  const makeProxy = () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, tag: string) => {
+          const Comp = ({ children, ...props }: any) => {
+            const {
+              whileHover,
+              whileTap,
+              initial,
+              animate,
+              exit,
+              variants,
+              transition,
+              layout,
+              ...rest
+            } = props;
+            return React.createElement(tag, rest, children);
+          };
+          return Comp;
+        },
+      },
+    );
+  return {
+    motion: makeProxy(),
+    m: makeProxy(),
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+    LazyMotion: ({ children }: any) => <>{children}</>,
+    domAnimation: {},
+  };
+});
 
 describe("App Root", () => {
   it("doit monter l'application", async () => {
-    render(
-      <DesignProvider>
-        <App />
-      </DesignProvider>,
-    );
-    expect(screen.getByText("Comptes")).toBeInTheDocument();
+    render(<App />);
+    // Le design actif (classic) est chargé via React.lazy : on attend qu'il
+    // se résolve avant d'asserter la présence de la sidebar.
+    expect(await screen.findByText("Comptes")).toBeInTheDocument();
   });
 });

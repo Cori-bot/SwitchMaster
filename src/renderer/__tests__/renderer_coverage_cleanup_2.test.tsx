@@ -16,7 +16,6 @@ Object.defineProperty(window, "ipc", {
 import TopBar from "../components/TopBar";
 import SecurityLock from "../components/SecurityLock";
 import Settings from "../components/Settings";
-import { DesignProvider } from "../contexts/DesignContext";
 
 describe("Renderer Cleanup Part 2", () => {
   beforeEach(() => {
@@ -92,17 +91,15 @@ describe("Renderer Cleanup Part 2", () => {
       } as any;
 
       render(
-        <DesignProvider>
-          <Settings
-            config={configWithAutoStart}
-            onUpdate={onUpdate}
-            onSelectRiotPath={vi.fn()}
-            onOpenPinModal={vi.fn()}
-            onDisablePin={vi.fn()}
-            onCheckUpdates={vi.fn()}
-            onOpenGPUModal={vi.fn()}
-          />
-        </DesignProvider>,
+        <Settings
+          config={configWithAutoStart}
+          onUpdate={onUpdate}
+          onSelectRiotPath={vi.fn()}
+          onOpenPinModal={vi.fn()}
+          onDisablePin={vi.fn()}
+          onCheckUpdates={vi.fn()}
+          onOpenGPUModal={vi.fn()}
+        />,
       );
 
       // Find checkbox by ID to be unambiguous

@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import Settings from "../components/Settings";
-import { DesignProvider } from "../contexts/DesignContext";
 import { vi, describe, it, expect } from "vitest";
 
 describe("Settings Branches Coverage", () => {
@@ -14,20 +13,14 @@ describe("Settings Branches Coverage", () => {
   };
 
   it("doit rendre un état vide si pas de config", () => {
-    render(
-      <DesignProvider>
-        <Settings config={null as any} {...mockHandlers} />
-      </DesignProvider>,
-    );
+    render(<Settings config={null as any} {...mockHandlers} />);
     expect(screen.queryByText(/Application/i)).not.toBeInTheDocument();
   });
 
   it("doit déclencher onUpdate sur le toggle autoStart en utilisant l'ID", () => {
     const config = { autoStart: false, hasPin: true, riotPath: "" };
     const { container } = render(
-      <DesignProvider>
-        <Settings config={config as any} {...mockHandlers} />
-      </DesignProvider>,
+      <Settings config={config as any} {...mockHandlers} />,
     );
 
     // Utiliser container.querySelector pour être sûr de l'élément input exact

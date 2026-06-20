@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import Settings from "../components/Settings";
-import { DesignProvider } from "../contexts/DesignContext";
 import { Config } from "../../shared/types";
 
 vi.mock("@assets/logo.png", () => ({ default: "mock-logo" }));
@@ -37,30 +36,18 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit retourner null si config est null", () => {
-    const { container } = render(
-      <DesignProvider>
-        <Settings {...defaultProps} config={null} />
-      </DesignProvider>,
-    );
+    const { container } = render(<Settings {...defaultProps} config={null} />);
     expect(container.firstChild).toBeNull();
   });
 
   it("doit afficher les paramètres avec une config valide", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
     expect(screen.getByText("Paramètres")).toBeDefined();
     expect(screen.getByText("Application")).toBeDefined();
   });
 
   it("doit mettre à jour showQuitModal", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const checkbox = screen.getByLabelText(/Confirmation de fermeture/i);
 
@@ -72,11 +59,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit mettre à jour minimizeToTray", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const checkbox = screen.getByLabelText(/Réduire SwitchMaster/i);
     fireEvent.click(checkbox);
@@ -87,11 +70,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit gérer autoStart et désactiver startMinimized quand autoStart est faux", async () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const checkbox = screen.getByLabelText(/Ouvrir SwitchMaster au démarrage/i);
 
@@ -107,11 +86,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit gérer startMinimized quand autoStart est actif", async () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const checkbox = screen.getByLabelText(/Démarrer en arrière-plan/i);
 
@@ -127,11 +102,7 @@ describe("Settings - Extended Coverage", () => {
 
   it("ne doit pas appeler set-auto-start si autoStart est désactivé lors de startMinimized", () => {
     const configWithoutAutoStart = { ...mockConfig, autoStart: false };
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} config={configWithoutAutoStart} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} config={configWithoutAutoStart} />);
 
     // startMinimized devrait être disabled
 
@@ -146,11 +117,7 @@ describe("Settings - Extended Coverage", () => {
       autoStart: true,
       startMinimized: false,
     };
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} config={configWithAutoStart} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} config={configWithAutoStart} />);
 
     const checkbox = screen.getByLabelText(/Démarrer en arrière-plan/i);
 
@@ -173,11 +140,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit appeler onOpenGPUModal quand enableGPU change", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const checkbox = screen.getByLabelText(
       /Activer l'accélération matérielle/i,
@@ -188,11 +151,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit appeler onSelectRiotPath au clic sur Parcourir", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     fireEvent.click(screen.getByText("Parcourir"));
 
@@ -200,11 +159,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit mettre à jour riotPath via le champ texte", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const input = screen.getByPlaceholderText(/Riot Games/i);
 
@@ -216,11 +171,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit appeler onOpenPinModal quand on active la sécurité", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     const checkbox = screen.getByLabelText(/Activer la protection par PIN/i);
     fireEvent.click(checkbox);
@@ -233,11 +184,7 @@ describe("Settings - Extended Coverage", () => {
       ...mockConfig,
       security: { enabled: true, pinHash: "hash" },
     };
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} config={configWithSecurity} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} config={configWithSecurity} />);
 
     const checkbox = screen.getByLabelText(/Activer la protection par PIN/i);
 
@@ -251,11 +198,7 @@ describe("Settings - Extended Coverage", () => {
       ...mockConfig,
       security: { enabled: true, pinHash: "hash" },
     };
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} config={configWithSecurity} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} config={configWithSecurity} />);
 
     const modifyButton = screen.getByText(/Définir \/ Modifier le code PIN/i);
     expect(modifyButton).toBeDefined();
@@ -265,11 +208,7 @@ describe("Settings - Extended Coverage", () => {
   });
 
   it("doit appeler onCheckUpdates au clic sur Mettre à jour", () => {
-    render(
-      <DesignProvider>
-        <Settings {...defaultProps} />
-      </DesignProvider>,
-    );
+    render(<Settings {...defaultProps} />);
 
     fireEvent.click(screen.getByText("Mettre à jour"));
 

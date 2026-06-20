@@ -10,10 +10,6 @@ import { RiotAutomationService } from "./services/RiotAutomationService";
 import { SessionService } from "./services/SessionService";
 import { SystemService } from "./services/SystemService";
 import { StatsService } from "./services/StatsService";
-import { DiscordRpcService } from "./services/DiscordRpcService";
-
-// TODO: Replace with the real Discord application client ID before release.
-const DISCORD_CLIENT_ID = "REPLACE_WITH_REAL_CLIENT_ID";
 
 // Capture globale des erreurs fatales (Production Stability)
 process.on("uncaughtException", (err) => {
@@ -99,23 +95,6 @@ const sessionService = new SessionService(
   configService,
 );
 const systemService = new SystemService();
-const discordRpcService = new DiscordRpcService();
-
-sessionService.on("account-switched", ({ account }) => {
-  discordRpcService
-    .setPresence({
-      details: `Playing as ${account?.name ?? "Unknown"}`,
-      state:
-        account?.gameType === "valorant" ? "Valorant" : "League of Legends",
-      largeImageKey: "switchmaster",
-      largeImageText: "SwitchMaster",
-    })
-    .catch(() => undefined);
-});
-
-app.on("before-quit", () => {
-  discordRpcService.stop().catch(() => undefined);
-});
 
 const launcherFactory = new LauncherFactory([riotAutomationService]);
 
@@ -194,10 +173,6 @@ async function initApp() {
       cb(false),
     );
     // ---------- /Security hardening ----------
-
-    if (configService.getConfig().enableDiscordRpc) {
-      discordRpcService.start(DISCORD_CLIENT_ID).catch(() => undefined);
-    }
 
     // Enregistrement du protocole sm-img pour les images locales
     protocol.handle("sm-img", (request) => {
@@ -368,10 +343,3 @@ async function initApp() {
     devError("App initialization failed:", err);
   }
 }
-
-app.on("window-all-closed", () => {
-  const config = configService.getConfig();
-  if (process.platform !== "darwin" && !config.minimizeToTray) {
-    app.quit();
-  }
-});

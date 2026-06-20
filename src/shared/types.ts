@@ -15,6 +15,8 @@ export interface Config {
   security?: {
     enabled: boolean;
     pinHash?: string | null;
+    failedAttempts?: number;
+    lockedUntil?: number;
   };
   hasSeenOnboarding: boolean;
   valorantAutoLockAgent?: string | null;
@@ -22,9 +24,8 @@ export interface Config {
 
   riotLaunchDelay?: number;
   showLaunchGamePopup?: boolean;
-  activeDesignModule?: "classic" | "modern";
+  activeDesignModule?: "classic" | "modern" | "pro";
   autoUpdate?: boolean;
-  enableDiscordRpc?: boolean;
 }
 
 export interface Account {

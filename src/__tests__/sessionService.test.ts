@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SessionService } from "../main/services/SessionService";
-import path from "path";
 
 describe("SessionService", () => {
   let service: SessionService;
@@ -19,6 +18,7 @@ describe("SessionService", () => {
       killProcesses: vi.fn(),
       launchClient: vi.fn(),
       login: vi.fn(),
+      loginLegacy: vi.fn(),
     };
     mockCfg = {
       getConfig: vi.fn().mockReturnValue({ riotPath: "R" }),
@@ -32,26 +32,18 @@ describe("SessionService", () => {
     expect(mockAuto.launchClient).toHaveBeenCalled();
   });
 
-  it("switchAccount handles path without .exe (Line 39-40)", async () => {
+  it("switchAccount launches the client (path resolution déléguée à launchClient)", async () => {
     mockCfg.getConfig.mockReturnValue({ riotPath: "C:\\Riot" });
     await service.switchAccount("id");
-    expect(mockAuto.launchClient).toHaveBeenCalledWith(
-      path.join("C:\\Riot", "RiotClientServices.exe"),
-    );
+    // SessionService ne construit plus le chemin de l'exe : launchClient()
+    // lit lui-même le chemin via configService.getRiotPath(). Il est donc
+    // appelé sans argument.
+    expect(mockAuto.launchClient).toHaveBeenCalledWith();
   });
 
-  it("switchAccount uses path as is if it ends with .exe", async () => {
-    const validPath = "C:\\Riot\\RiotClientServices.exe";
-    mockCfg.getConfig.mockReturnValue({ riotPath: validPath });
+  it("switchAccount calls loginLegacy with credentials", async () => {
     await service.switchAccount("id");
-    expect(mockAuto.launchClient).toHaveBeenCalledWith(validPath);
-  });
-
-  it("switchAccount uses path as is if it ends with .exe", async () => {
-    const validPath = "C:\\Riot\\RiotClientServices.exe";
-    mockCfg.getConfig.mockReturnValue({ riotPath: validPath });
-    await service.switchAccount("id");
-    expect(mockAuto.launchClient).toHaveBeenCalledWith(validPath);
+    expect(mockAuto.loginLegacy).toHaveBeenCalledWith("u", "p");
   });
 
   it("switchAccount handles error (Line 55)", async () => {

@@ -215,27 +215,35 @@ export class AccountService {
     mainWindow: BrowserWindow | null,
   ): Promise<void> {
     const accounts = await this.getAccounts();
-    const results = await Promise.all(
-      accounts.map(async (account) => {
-        if (!account.riotId) return false;
-        try {
-          const newStats = await this.statsService.fetchAccountStats(
-            account.riotId,
-            account.gameType,
-          );
-          if (JSON.stringify(account.stats) !== JSON.stringify(newStats)) {
-            account.stats = newStats;
-            return true;
-          }
-        } catch (err) {
-          devError(
-            `AccountService: Failed to refresh stats for ${account.name}:`,
-            err,
-          );
+
+    const refreshOne = async (account: Account): Promise<boolean> => {
+      if (!account.riotId) return false;
+      try {
+        const newStats = await this.statsService.fetchAccountStats(
+          account.riotId,
+          account.gameType,
+        );
+        if (JSON.stringify(account.stats) !== JSON.stringify(newStats)) {
+          account.stats = newStats;
+          return true;
         }
-        return false;
-      }),
-    );
+      } catch (err) {
+        devError(
+          `AccountService: Failed to refresh stats for ${account.name}:`,
+          err,
+        );
+      }
+      return false;
+    };
+
+    // Limite la concurrence pour ne pas marteler l'API de stats (et risquer un
+    // rate-limit/ban) quand l'utilisateur a beaucoup de comptes.
+    const CONCURRENCY = 4;
+    const results: boolean[] = [];
+    for (let i = 0; i < accounts.length; i += CONCURRENCY) {
+      const batch = accounts.slice(i, i + CONCURRENCY);
+      results.push(...(await Promise.all(batch.map(refreshOne))));
+    }
 
     if (results.some((changed) => changed)) {
       await this.saveAccounts(accounts);

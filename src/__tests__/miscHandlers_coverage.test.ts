@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { ipcMain, dialog } from "electron";
+import fs from "fs-extra";
 
 vi.mock("electron-updater", () => ({
   autoUpdater: { on: vi.fn(), checkForUpdatesAndNotify: vi.fn() },
@@ -19,8 +20,16 @@ vi.mock("electron", () => ({
     relaunch: vi.fn(),
     exit: vi.fn(),
     getVersion: vi.fn().mockReturnValue("1.0.0"),
+    getPath: vi.fn().mockReturnValue("USERDATA"),
   },
   BrowserWindow: { getAllWindows: vi.fn(() => []) },
+}));
+
+vi.mock("fs-extra", () => ({
+  default: {
+    ensureDir: vi.fn().mockResolvedValue(undefined),
+    copy: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 
 vi.mock("../main/logger", () => ({ devLog: vi.fn(), devError: vi.fn() }));
@@ -55,7 +64,8 @@ describe("miscHandlers Coverage Final", () => {
     });
     registerMiscHandlers(() => win as any, {} as any, mockAcc, mockCfg);
     const res = await registered["select-account-image"]({});
-    expect(res).toBe("img.png");
+    expect(res).toMatch(/account-images/);
+    expect(fs.copy).toHaveBeenCalledWith("img.png", expect.any(String));
   });
 
   it("select-account-image handles canceled selection", async () => {

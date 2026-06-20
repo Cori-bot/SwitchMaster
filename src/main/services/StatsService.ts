@@ -36,6 +36,8 @@ export class StatsService {
     Referer: "https://tracker.gg/",
   };
 
+  private readonly REQUEST_TIMEOUT_MS = 10000;
+
   constructor() {}
 
   public async fetchAccountStats(
@@ -81,9 +83,9 @@ export class StatsService {
       return { rank, rankIcon: icon, lastUpdate: Date.now() };
     } catch (err) {
       const errorMsg = (err as Error).message;
-      if (errorMsg.includes("HTTP 404")) {
+      if (/HTTP (403|404|429)/.test(errorMsg)) {
         devLog(
-          `Stats not found for ${riotId} (404) - Account may be private or not found.`,
+          `Stats unavailable for ${riotId} - private, not found, or rate-limited (${errorMsg.slice(0, 12)}).`,
         );
       } else {
         devError(`Error Valorant stats ${riotId}:`, errorMsg);
@@ -123,9 +125,9 @@ export class StatsService {
       return { rank, rankIcon: icon, lastUpdate: Date.now() };
     } catch (err) {
       const errorMsg = (err as Error).message;
-      if (errorMsg.includes("HTTP 404")) {
+      if (/HTTP (403|404|429)/.test(errorMsg)) {
         devLog(
-          `Stats not found for ${riotId} (404) - Account may be private or not found.`,
+          `Stats unavailable for ${riotId} - private, not found, or rate-limited (${errorMsg.slice(0, 12)}).`,
         );
       } else {
         devError(`Error League stats ${riotId}:`, errorMsg);
@@ -139,17 +141,19 @@ export class StatsService {
     headers: Record<string, string>,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
-      https
-        .get(url, { headers }, (res) => {
-          let responseBody = "";
-          res.on("data", (chunk) => {
-            responseBody += chunk;
-          });
-          res.on("end", () =>
-            this.handleResponse(res, responseBody, resolve, reject),
-          );
-        })
-        .on("error", (err) => reject(err));
+      const req = https.get(url, { headers }, (res) => {
+        let responseBody = "";
+        res.on("data", (chunk) => {
+          responseBody += chunk;
+        });
+        res.on("end", () =>
+          this.handleResponse(res, responseBody, resolve, reject),
+        );
+      });
+      req.on("error", (err) => reject(err));
+      req.setTimeout(this.REQUEST_TIMEOUT_MS, () => {
+        req.destroy(new Error("Request timed out"));
+      });
     });
   }
 

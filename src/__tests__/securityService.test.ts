@@ -74,10 +74,10 @@ describe("SecurityService", () => {
     );
   });
 
-  it("encryption fallback when safeStorage unavailable", () => {
+  it("encryption throws and decryption returns null when safeStorage unavailable", () => {
     (safeStorage.isEncryptionAvailable as any).mockReturnValue(false);
-    expect(service.encryptData("p")).toBe(Buffer.from("p").toString("base64"));
-    expect(service.decryptData(Buffer.from("p").toString("base64"))).toBe("p");
+    expect(() => service.encryptData("p")).toThrow();
+    expect(service.decryptData(Buffer.from("p").toString("base64"))).toBeNull();
   });
 
   it("decryptData handles error", () => {

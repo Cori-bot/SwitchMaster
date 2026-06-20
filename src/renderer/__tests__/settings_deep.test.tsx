@@ -6,7 +6,6 @@ import {
   act,
 } from "@testing-library/react";
 import Settings from "../components/Settings";
-import { DesignProvider } from "../contexts/DesignContext";
 import { renderHook } from "@testing-library/react";
 import { useConfig } from "../hooks/useConfig";
 
@@ -72,17 +71,15 @@ describe("Settings Deep Coverage", () => {
     const onOpenGPUModal = vi.fn();
 
     render(
-      <DesignProvider>
-        <Settings
-          config={mockConfig as any}
-          onUpdate={onUpdate}
-          onSelectRiotPath={vi.fn()}
-          onOpenPinModal={onOpenPinModal}
-          onDisablePin={onDisablePin}
-          onCheckUpdates={onCheckUpdates}
-          onOpenGPUModal={onOpenGPUModal}
-        />
-      </DesignProvider>,
+      <Settings
+        config={mockConfig as any}
+        onUpdate={onUpdate}
+        onSelectRiotPath={vi.fn()}
+        onOpenPinModal={onOpenPinModal}
+        onDisablePin={onDisablePin}
+        onCheckUpdates={onCheckUpdates}
+        onOpenGPUModal={onOpenGPUModal}
+      />,
     );
 
     fireEvent.click(screen.getByText(/Définir \/ Modifier le code PIN/i));

@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Settings from "../components/Settings";
 import SecurityLock from "../components/SecurityLock";
-import { DesignProvider } from "../contexts/DesignContext";
 import { DeleteConfirmModal } from "../components/Modals/DeleteConfirmModal";
 
 import { QuitModal } from "../components/Modals/QuitModal";
@@ -32,17 +31,15 @@ describe("Settings Component", () => {
   it("doit afficher les paramètres et gérer les changements", async () => {
     const onUpdate = vi.fn();
     render(
-      <DesignProvider>
-        <Settings
-          config={mockConfig as any}
-          onUpdate={onUpdate}
-          onSelectRiotPath={vi.fn()}
-          onOpenPinModal={vi.fn()}
-          onDisablePin={vi.fn()}
-          onCheckUpdates={vi.fn()}
-          onOpenGPUModal={vi.fn()}
-        />
-      </DesignProvider>,
+      <Settings
+        config={mockConfig as any}
+        onUpdate={onUpdate}
+        onSelectRiotPath={vi.fn()}
+        onOpenPinModal={vi.fn()}
+        onDisablePin={vi.fn()}
+        onCheckUpdates={vi.fn()}
+        onOpenGPUModal={vi.fn()}
+      />,
     );
 
     expect(screen.getByText("Paramètres")).toBeInTheDocument();
