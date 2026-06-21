@@ -8,11 +8,13 @@ import { devLog, devError } from "../logger";
 import { AccountService } from "../services/AccountService";
 import { ConfigService } from "../services/ConfigService";
 import { LcuLocalService } from "../services/LcuLocalService";
+import { LauncherFactory } from "../services/LauncherFactory";
 import {
   parsePayload,
   booleanSchema,
   logToMainSchema,
   quitChoiceSchema,
+  steamProfileIdSchema,
 } from "./schemas";
 
 export function registerMiscHandlers(
@@ -21,6 +23,7 @@ export function registerMiscHandlers(
   accountService: AccountService,
   configService: ConfigService,
   lcuLocalService: LcuLocalService,
+  launcherFactory: LauncherFactory,
 ) {
   safeHandle("select-account-image", async () => {
     const win = getMainWindow();
@@ -153,4 +156,30 @@ export function registerMiscHandlers(
     if (!configService.getConfig().enableLcuDetection) return null;
     return lcuLocalService.getActiveAccount();
   });
+
+  // --- Steam (multi-launcher, modèle capture/restore de profil) ---
+  const steam = () => launcherFactory.getAdapter("steam");
+
+  safeHandle("steam-is-installed", () => steam().isInstalled());
+
+  safeHandle("steam-list-profiles", () => {
+    const adapter = steam();
+    return adapter.listProfiles ? adapter.listProfiles() : [];
+  });
+
+  safeHandle("steam-capture-profile", async (_e, raw) => {
+    const id = parsePayload(steamProfileIdSchema, raw, "steam-capture-profile");
+    await steam().captureProfile(id);
+    return true;
+  });
+
+  safeHandle("steam-restore-profile", async (_e, raw) => {
+    const id = parsePayload(steamProfileIdSchema, raw, "steam-restore-profile");
+    const adapter = steam();
+    await adapter.restoreProfile(id);
+    await adapter.launchClient();
+    return true;
+  });
+
+  safeHandle("steam-launch", () => steam().launchClient());
 }

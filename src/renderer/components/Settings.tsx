@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Clock,
   Gamepad2,
+  Boxes,
 } from "lucide-react";
 import { Config } from "../../shared/types";
 import logoImg from "@assets/switchmaster/switchmaster-icon.svg";
@@ -146,8 +147,7 @@ const Settings: React.FC<SettingsProps> = ({
       return;
     }
     let active = true;
-    window.ipc
-      .invoke("get-lcu-active-account")
+    Promise.resolve(window.ipc?.invoke?.("get-lcu-active-account"))
       .then((res: unknown) => {
         if (!active) return;
         const id =
@@ -164,7 +164,43 @@ const Settings: React.FC<SettingsProps> = ({
     };
   }, [config?.enableLcuDetection]);
 
+  const [steamInstalled, setSteamInstalled] = React.useState<boolean | null>(
+    null,
+  );
+  const [steamProfiles, setSteamProfiles] = React.useState<string[]>([]);
+  const [steamProfileName, setSteamProfileName] = React.useState("");
+
+  const refreshSteamProfiles = React.useCallback(() => {
+    Promise.resolve(window.ipc?.invoke?.("steam-list-profiles"))
+      .then((r: unknown) => setSteamProfiles(Array.isArray(r) ? r : []))
+      .catch(() => undefined);
+  }, []);
+
+  React.useEffect(() => {
+    let active = true;
+    Promise.resolve(window.ipc?.invoke?.("steam-is-installed"))
+      .then((r: unknown) => {
+        if (active) setSteamInstalled(!!r);
+      })
+      .catch(() => undefined);
+    refreshSteamProfiles();
+    return () => {
+      active = false;
+    };
+  }, [refreshSteamProfiles]);
+
   if (!config) return null;
+
+  const handleCaptureSteam = async () => {
+    const name = steamProfileName.trim();
+    if (!name) return;
+    await window.ipc?.invoke?.("steam-capture-profile", name);
+    setSteamProfileName("");
+    refreshSteamProfiles();
+  };
+
+  const handleRestoreSteam = (id: string) =>
+    window.ipc?.invoke?.("steam-restore-profile", id);
 
   const handleChange = <K extends keyof Config>(key: K, value: Config[K]) => {
     onUpdate({ [key]: value });
@@ -381,6 +417,59 @@ const Settings: React.FC<SettingsProps> = ({
               Définir / Modifier le code PIN
             </button>
           </div>
+        )}
+      </SettingItem>
+
+      <SettingItem
+        icon={Boxes}
+        title="Steam (expérimental)"
+        description="Bascule de comptes Steam par capture/restauration de profil local."
+      >
+        <div className="text-sm text-gray-400 mb-3">
+          Steam détecté :{" "}
+          <span className="font-mono text-blue-400">
+            {steamInstalled === null
+              ? "…"
+              : steamInstalled
+                ? "oui"
+                : "non installé"}
+          </span>
+        </div>
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={steamProfileName}
+            onChange={(e) => setSteamProfileName(e.target.value)}
+            placeholder="Nom du profil (a-z, 0-9, - _)"
+            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50"
+          />
+          <button
+            onClick={handleCaptureSteam}
+            disabled={!steamInstalled || !steamProfileName.trim()}
+            className="px-4 py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-500 rounded-xl text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Capturer la session
+          </button>
+        </div>
+        {steamProfiles.length > 0 ? (
+          <div className="space-y-2">
+            {steamProfiles.map((p) => (
+              <div
+                key={p}
+                className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2 border border-white/5"
+              >
+                <span className="font-mono text-sm text-gray-300">{p}</span>
+                <button
+                  onClick={() => handleRestoreSteam(p)}
+                  className="text-xs font-bold text-blue-500 hover:text-blue-400 transition-colors"
+                >
+                  Restaurer &amp; lancer
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500">Aucun profil capturé.</p>
         )}
       </SettingItem>
 

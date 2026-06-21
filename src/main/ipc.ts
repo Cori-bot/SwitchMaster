@@ -15,6 +15,7 @@ import { SessionService } from "./services/SessionService";
 import { SystemService } from "./services/SystemService";
 import { StatsService } from "./services/StatsService";
 import { LcuLocalService } from "./services/LcuLocalService";
+import { LauncherFactory } from "./services/LauncherFactory";
 
 let areHandlersRegistered = false;
 let currentMainWindow: BrowserWindow | null = null;
@@ -28,6 +29,7 @@ export interface AppServices {
   systemService: SystemService;
   statsService: StatsService;
   lcuLocalService: LcuLocalService;
+  launcherFactory: LauncherFactory;
 }
 
 export function setupIpcHandlers(
@@ -59,6 +61,7 @@ export function setupIpcHandlers(
     services.accountService,
     services.configService,
     services.lcuLocalService,
+    services.launcherFactory,
   );
   registerUpdateHandlers(getWin);
 

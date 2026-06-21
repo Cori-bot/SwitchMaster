@@ -5,6 +5,9 @@ export const idSchema = z.string().min(1);
 export const idArraySchema = z.array(z.string().min(1));
 export const pinSchema = z.string().min(1).max(64);
 export const booleanSchema = z.boolean();
+export const steamProfileIdSchema = z
+  .string()
+  .regex(/^[a-zA-Z0-9 _-]{1,64}$/, "Identifiant de profil Steam invalide");
 
 // Misc handler payloads
 export const logToMainSchema = z.object({

@@ -41,6 +41,8 @@ export interface LauncherAdapter {
   captureProfile(accountId: string): Promise<void>;
   /** Restore a previously captured profile snapshot. */
   restoreProfile(accountId: string): Promise<void>;
+  /** Optional: list captured profile ids for this launcher. */
+  listProfiles?(): Promise<string[]>;
   /** Optional automated login (Riot legacy path). */
   login?(credentials: ILauncherCredentials): Promise<void>;
 }

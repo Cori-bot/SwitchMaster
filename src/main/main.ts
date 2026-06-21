@@ -263,6 +263,7 @@ async function initApp() {
       systemService,
       statsService,
       lcuLocalService,
+      launcherFactory,
     });
 
     mainWindow = createWindow(isDev, configService);
@@ -366,6 +367,7 @@ async function initApp() {
       systemService,
       statsService,
       lcuLocalService,
+      launcherFactory,
     });
 
     setupUpdater(mainWindow);

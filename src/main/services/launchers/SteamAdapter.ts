@@ -121,8 +121,36 @@ export class SteamAdapter implements LauncherAdapter {
 
   // --- helpers ---
 
+  /** N'autorise que des caractères sûrs (anti-injection chemin/registre). */
+  private safeId(accountId: string): string {
+    return accountId
+      .replace(/[^a-zA-Z0-9_ -]/g, "")
+      .trim()
+      .slice(0, 64);
+  }
+
+  /** Liste les profils Steam capturés (sous-dossiers de profiles/steam). */
+  public async listProfiles(): Promise<string[]> {
+    const dir = path.join(app.getPath("userData"), "profiles", this.id);
+    try {
+      const entries = await fs.readdir(dir);
+      const profiles: string[] = [];
+      for (const e of entries) {
+        if ((await fs.stat(path.join(dir, e))).isDirectory()) profiles.push(e);
+      }
+      return profiles;
+    } catch {
+      return [];
+    }
+  }
+
   private getProfileDir(accountId: string): string {
-    return path.join(app.getPath("userData"), "profiles", this.id, accountId);
+    return path.join(
+      app.getPath("userData"),
+      "profiles",
+      this.id,
+      this.safeId(accountId),
+    );
   }
 
   private async requireSteamPath(): Promise<string> {
@@ -173,7 +201,7 @@ export class SteamAdapter implements LauncherAdapter {
   private async setAutoLoginUser(accountId: string): Promise<void> {
     try {
       await execAsync(
-        `reg add "HKCU\\Software\\Valve\\Steam" /v AutoLoginUser /t REG_SZ /d "${accountId}" /f`,
+        `reg add "HKCU\\Software\\Valve\\Steam" /v AutoLoginUser /t REG_SZ /d "${this.safeId(accountId)}" /f`,
       );
     } catch (e) {
       devDebug("setAutoLoginUser failed:", e instanceof Error ? e.message : e);
