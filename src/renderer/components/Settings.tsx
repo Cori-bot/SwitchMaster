@@ -10,7 +10,6 @@ import {
 import { Config } from "../../shared/types";
 import logoImg from "@assets/switchmaster/switchmaster-icon.svg";
 
-
 import {
   ICON_SIZE_NORMAL,
   ICON_SIZE_SMALL,
@@ -65,8 +64,9 @@ const Checkbox: React.FC<CheckboxProps> = ({
 }) => (
   <label
     htmlFor={id}
-    className={`flex items-start gap-3 py-2 ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"
-      }`}
+    className={`flex items-start gap-3 py-2 ${
+      disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"
+    }`}
   >
     <div className="relative flex items-center mt-1">
       <input
@@ -79,10 +79,11 @@ const Checkbox: React.FC<CheckboxProps> = ({
       />
       <div
         className={`w-5 h-5 border-2 rounded-md transition-all duration-200 
-        ${disabled
+        ${
+          disabled
             ? "border-gray-700 bg-gray-800/50"
             : "border-gray-600 peer-checked:bg-blue-600 peer-checked:border-blue-600 group-hover:border-blue-500"
-          }`}
+        }`}
       />
       <svg
         className="absolute w-3.5 h-3.5 text-white opacity-0 transition-opacity duration-200 peer-checked:opacity-100 left-[3px]"
@@ -98,15 +99,17 @@ const Checkbox: React.FC<CheckboxProps> = ({
     </div>
     <div className="flex-1">
       <div
-        className={`text-sm font-medium transition-colors ${disabled ? "text-gray-600" : "text-gray-300 group-hover:text-white"
-          }`}
+        className={`text-sm font-medium transition-colors ${
+          disabled ? "text-gray-600" : "text-gray-300 group-hover:text-white"
+        }`}
       >
         {label}
       </div>
       {subLabel && (
         <div
-          className={`text-[11px] mt-0.5 ${disabled ? "text-gray-700" : "text-gray-500"
-            }`}
+          className={`text-[11px] mt-0.5 ${
+            disabled ? "text-gray-700" : "text-gray-500"
+          }`}
         >
           {subLabel}
         </div>
@@ -134,8 +137,6 @@ const Settings: React.FC<SettingsProps> = ({
   onCheckUpdates,
   onOpenGPUModal,
 }) => {
-
-
   if (!config) return null;
 
   const handleChange = <K extends keyof Config>(key: K, value: Config[K]) => {
@@ -168,8 +169,6 @@ const Settings: React.FC<SettingsProps> = ({
         </p>
       </header>
 
-
-
       <SettingItem
         icon={Monitor}
         title="Application"
@@ -181,24 +180,28 @@ const Settings: React.FC<SettingsProps> = ({
               Design de l'interface
             </label>
             <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
-              <button
-                onClick={() => handleChange("activeDesignModule", "classic")}
-                className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${config.activeDesignModule !== 'modern'
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
-              >
-                Classic
-              </button>
-              <button
-                onClick={() => handleChange("activeDesignModule", "modern")}
-                className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${config.activeDesignModule === 'modern'
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
-              >
-                Modern
-              </button>
+              {(["classic", "modern", "pro"] as const).map((key) => {
+                const active = (config.activeDesignModule || "classic") === key;
+                const label =
+                  key === "classic"
+                    ? "Classic"
+                    : key === "modern"
+                      ? "Modern"
+                      : "Pro";
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleChange("activeDesignModule", key)}
+                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                      active
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <Checkbox
@@ -282,7 +285,8 @@ const Settings: React.FC<SettingsProps> = ({
               Délai de lancement du client Riot
             </label>
             <p className="text-xs text-gray-500 mb-4">
-              Augmentez cette valeur si votre PC est lent à ouvrir le launcher Riot.
+              Augmentez cette valeur si votre PC est lent à ouvrir le launcher
+              Riot.
             </p>
             <div className="flex items-center gap-4">
               <input
@@ -361,7 +365,7 @@ const Settings: React.FC<SettingsProps> = ({
               />
             </div>
             <div>
-              <div className="text-white font-bold">SwitchMaster v2.5.1</div>
+              <div className="text-white font-bold">SwitchMaster v2.6.0</div>
               <div className="text-xs text-gray-500 font-medium">
                 Développé par Coridor
               </div>
@@ -377,7 +381,7 @@ const Settings: React.FC<SettingsProps> = ({
           </button>
         </div>
       </SettingItem>
-    </div >
+    </div>
   );
 };
 

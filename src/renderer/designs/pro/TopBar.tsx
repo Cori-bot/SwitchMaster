@@ -5,11 +5,15 @@ import { AppStatus } from "../../../shared/types";
 interface ProTopBarProps {
   status: AppStatus;
   onOpenSettings: () => void;
+  query: string;
+  onQueryChange: (value: string) => void;
 }
 
 export const ProTopBar: React.FC<ProTopBarProps> = ({
   status,
   onOpenSettings,
+  query,
+  onQueryChange,
 }) => {
   return (
     <header className="pro-topbar">
@@ -20,8 +24,13 @@ export const ProTopBar: React.FC<ProTopBarProps> = ({
       </div>
       <div className="pro-topbar__search">
         <Search size={12} />
-        <input type="text" placeholder="Search accounts, commands..." />
-        <span className="pro-topbar__kbd">⌘K</span>
+        <input
+          type="text"
+          placeholder="Rechercher un compte..."
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          aria-label="Rechercher un compte"
+        />
       </div>
       <button
         className="pro-iconbtn"

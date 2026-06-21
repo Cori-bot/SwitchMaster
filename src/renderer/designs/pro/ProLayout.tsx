@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Play, Star, Pencil, Trash2 } from "lucide-react";
 import { DesignProps } from "../types";
 import { Account } from "../../../shared/types";
 import AddAccountModal from "../../components/AddAccountModal";
+import Settings from "../../components/Settings";
 import ProTopBar from "./TopBar";
 import AccountList from "./AccountList";
 import "./pro.css";
@@ -10,14 +11,31 @@ import "./pro.css";
 export const ProLayout: React.FC<DesignProps> = ({
   accounts,
   activeAccountId,
+  config,
   status,
   actions,
+  systemActions,
   onSwitchSession,
   onOpenSettings,
+  openSettingsSignal,
 }) => {
   const [selectedId, setSelectedId] = useState<string | null>(activeAccountId);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (openSettingsSignal) setShowSettings(true);
+  }, [openSettingsSignal]);
+
+  const visibleAccounts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return accounts;
+    return accounts.filter((a) =>
+      `${a.name} ${a.riotId ?? ""}`.toLowerCase().includes(q),
+    );
+  }, [accounts, query]);
 
   const selected = useMemo(
     () =>
@@ -45,19 +63,48 @@ export const ProLayout: React.FC<DesignProps> = ({
 
   return (
     <div className="pro-layout" data-design="pro">
-      <ProTopBar status={status} onOpenSettings={onOpenSettings} />
+      <ProTopBar
+        status={status}
+        onOpenSettings={onOpenSettings}
+        query={query}
+        onQueryChange={setQuery}
+      />
 
       <AccountList
-        accounts={accounts}
+        accounts={visibleAccounts}
         activeAccountId={activeAccountId}
         selectedId={selected?.id ?? null}
         onSelect={setSelectedId}
         onToggleFavorite={actions.toggleFavorite}
-        onReorder={actions.reorderAccounts}
+        onReorder={(ids) => {
+          // Le réordonnancement n'est persisté que sur la liste complète
+          // (un filtre actif ne réordonne qu'un sous-ensemble).
+          if (visibleAccounts.length === accounts.length)
+            actions.reorderAccounts(ids);
+        }}
       />
 
       <section className="pro-detail" aria-label="Account detail">
-        {!selected ? (
+        {showSettings ? (
+          <div className="pro-settings">
+            <button
+              className="pro-btn pro-btn--ghost"
+              onClick={() => setShowSettings(false)}
+              style={{ marginBottom: 12 }}
+            >
+              ← Retour
+            </button>
+            <Settings
+              config={config}
+              onUpdate={systemActions.updateConfig}
+              onSelectRiotPath={systemActions.selectRiotPath}
+              onOpenPinModal={() => systemActions.openSecurityModal("set")}
+              onDisablePin={() => systemActions.openSecurityModal("disable")}
+              onCheckUpdates={systemActions.checkUpdates}
+              onOpenGPUModal={systemActions.openGpuModal}
+            />
+          </div>
+        ) : !selected ? (
           <div className="pro-detail__empty">
             <p>No accounts yet.</p>
             <button className="pro-btn" onClick={() => setIsAddOpen(true)}>
