@@ -1,6 +1,6 @@
 {
   "name": "switchmaster",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "SwitchMaster : Multi-Account Switcher",
   "main": "dist-main/main.js",
   "scripts": {
@@ -40,7 +40,7 @@
     "publish": {
       "provider": "github",
       "owner": "Cori-bot",
-      "repo": "SwitchMaster-v2",
+      "repo": "SwitchMaster",
       "private": false,
       "releaseType": "release"
     },
