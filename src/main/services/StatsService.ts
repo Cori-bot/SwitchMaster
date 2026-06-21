@@ -37,6 +37,15 @@ export class StatsService {
   };
 
   private readonly REQUEST_TIMEOUT_MS = 10000;
+  private readonly MAX_RETRIES = 2;
+  private readonly CACHE_TTL_MS = 60_000;
+  private readonly cache = new Map<
+    string,
+    {
+      value: { rank: string; rankIcon: string; lastUpdate: number };
+      ts: number;
+    }
+  >();
 
   constructor() {}
 
@@ -45,11 +54,25 @@ export class StatsService {
     gameType: "league" | "valorant",
   ) {
     devLog(`StatsService: Fetching ${gameType} stats for ${riotId}...`);
-    if (gameType === "league") {
-      return await this.fetchLeagueStats(riotId);
-    } else {
-      return await this.fetchValorantStats(riotId);
+    const cacheKey = `${gameType}:${riotId}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < this.CACHE_TTL_MS) {
+      return cached.value;
     }
+
+    const fresh =
+      gameType === "league"
+        ? await this.fetchLeagueStats(riotId)
+        : await this.fetchValorantStats(riotId);
+
+    if (fresh) {
+      this.cache.set(cacheKey, { value: fresh, ts: Date.now() });
+      return fresh;
+    }
+
+    // Échec réseau : on conserve la dernière valeur connue (même expirée)
+    // plutôt que de faire disparaître le rang déjà affiché.
+    return cached?.value ?? null;
   }
 
   private async fetchValorantStats(riotId: string) {
@@ -57,7 +80,7 @@ export class StatsService {
       const { name, tag } = this.parseRiotId(riotId);
       const url = `https://api.tracker.gg/api/v2/valorant/standard/profile/riot/${name}%23${tag}?source=web`;
 
-      const apiResponse = await this.httpsGet<TrackerResponse>(
+      const apiResponse = await this.httpsGetWithRetry<TrackerResponse>(
         url,
         this.HEADERS,
       );
@@ -99,7 +122,7 @@ export class StatsService {
       const { name, tag } = this.parseRiotId(riotId);
       const url = `https://api.tracker.gg/api/v2/lol/standard/profile/riot/${name}%23${tag}`;
 
-      const apiResponse = await this.httpsGet<TrackerResponse>(
+      const apiResponse = await this.httpsGetWithRetry<TrackerResponse>(
         url,
         this.HEADERS,
       );
@@ -155,6 +178,30 @@ export class StatsService {
         req.destroy(new Error("Request timed out"));
       });
     });
+  }
+
+  private async httpsGetWithRetry<T>(
+    url: string,
+    headers: Record<string, string>,
+  ): Promise<T> {
+    let lastErr: Error = new Error("unknown");
+    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        return await this.httpsGet<T>(url, headers);
+      } catch (err) {
+        lastErr = err as Error;
+        // Erreurs définitives : pas de retry (privé / introuvable / rate-limit).
+        if (/HTTP (403|404|429)/.test(lastErr.message)) throw lastErr;
+        if (attempt < this.MAX_RETRIES) {
+          await this.delay(300 * Math.pow(2, attempt));
+        }
+      }
+    }
+    throw lastErr;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private handleResponse<T>(
