@@ -8,7 +8,6 @@ import {
   Clock,
   Gamepad2,
   Boxes,
-  Zap,
 } from "lucide-react";
 import { Config } from "../../shared/types";
 import logoImg from "@assets/switchmaster/switchmaster-icon.svg";
@@ -436,20 +435,6 @@ const Settings: React.FC<SettingsProps> = ({
         ) : (
           <p className="text-xs text-gray-500">Aucun profil capturé.</p>
         )}
-      </SettingItem>
-
-      <SettingItem
-        icon={Zap}
-        title="Connexion Riot par session (expérimental)"
-        description="Bascule sans taper le mot de passe, en restaurant la session du Riot Client. Capturez d'abord la session d'un compte via le menu ⋮ de sa carte (en étant connecté à ce compte)."
-      >
-        <Checkbox
-          id="enableRiotSessionSwap"
-          label="Activer la connexion par session"
-          subLabel="⚠️ Expérimental — manipule les fichiers de session du Riot Client (zone grise CGU, sans rapport avec l'anti-cheat Vanguard). Une sauvegarde est faite avant restauration. La session peut expirer (~72 h) → retour automatique à la frappe clavier."
-          checked={config.enableRiotSessionSwap ?? false}
-          onChange={(val) => handleChange("enableRiotSessionSwap", val)}
-        />
       </SettingItem>
 
       <SettingItem

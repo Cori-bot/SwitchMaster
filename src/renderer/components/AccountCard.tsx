@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  MoreVertical,
-  Play,
-  Trash2,
-  Edit2,
-  Star,
-  Loader2,
-  Camera,
-} from "lucide-react";
+import { MoreVertical, Play, Trash2, Edit2, Star, Loader2 } from "lucide-react";
 import { Account } from "../hooks/useAccounts";
 
 import leagueIcon from "@assets/games/league-of-legends-icon.svg";
@@ -36,7 +28,6 @@ interface AccountCardProps {
   onDragEnter: (e: React.DragEvent, id: string) => void;
   onDrop: (e: React.DragEvent, id: string) => void;
   onReconnect?: (account: Account) => void;
-  onCaptureSession?: () => void;
 }
 
 const AccountCard: React.FC<AccountCardProps> = ({
@@ -53,7 +44,6 @@ const AccountCard: React.FC<AccountCardProps> = ({
   onDragEnter,
   onDrop,
   onReconnect,
-  onCaptureSession,
 }) => {
   const {
     id,
@@ -218,14 +208,6 @@ const AccountCard: React.FC<AccountCardProps> = ({
                 >
                   <Edit2 size={ICON_SIZE_SMALL} /> Modifier
                 </button>
-                {onCaptureSession && (
-                  <button
-                    onClick={onCaptureSession}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-colors"
-                  >
-                    <Camera size={ICON_SIZE_SMALL} /> Capturer la session
-                  </button>
-                )}
                 <button
                   onClick={() => onDelete(account.id)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"

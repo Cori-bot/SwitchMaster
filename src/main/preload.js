@@ -38,8 +38,6 @@ const INVOKE_CHANNELS = new Set([
   "steam-capture-profile",
   "steam-restore-profile",
   "steam-launch",
-  "riot-capture-session",
-  "riot-has-session",
   "check-updates",
   "simulate-update",
   "download-update",

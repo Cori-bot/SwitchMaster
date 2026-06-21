@@ -5,7 +5,6 @@ import TopBar from "../../components/TopBar";
 import Settings from "../../components/Settings";
 import AddAccountModal from "../../components/AddAccountModal";
 import { DesignProps } from "../types";
-import { Account } from "../../../shared/types";
 import { AnimatePresence, m } from "motion/react";
 import { useAccountModal } from "../../hooks/useAccountModal";
 import NotificationItem from "../../components/NotificationItem";
@@ -44,33 +43,6 @@ export const ClassicLayout: React.FC<DesignProps> = ({
     }
   }, [switchError, addNotification, onClearSwitchError]);
 
-  const handleCaptureSession = async (account: Account) => {
-    try {
-      const status = await window.ipc.invoke(
-        "riot-capture-session",
-        account.id,
-      );
-      if (status === "ok") {
-        addNotification(
-          `Session Riot capturée pour ${account.name}`,
-          "success",
-        );
-      } else if (status === "no-session") {
-        addNotification(
-          "Aucune session « Rester connecté » détectée. Coche « Rester connecté » à la connexion au Riot Client, puis recapture.",
-          "error",
-        );
-      } else {
-        addNotification(
-          "Riot Client non détecté — connecte-toi d'abord à ce compte.",
-          "info",
-        );
-      }
-    } catch {
-      addNotification("Échec de la capture de session", "error");
-    }
-  };
-
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans select-none relative">
       <Sidebar activeView={view} onViewChange={setView} />
@@ -90,9 +62,6 @@ export const ClassicLayout: React.FC<DesignProps> = ({
               filter={filter}
               activeAccountId={activeAccountId || undefined}
               switchingId={switchingId}
-              onCaptureSession={
-                config.enableRiotSessionSwap ? handleCaptureSession : undefined
-              }
               onSwitch={onSwitchSession}
               onDelete={actions.deleteAccount}
               onEdit={modal.openEdit}

@@ -2,7 +2,6 @@ import { BrowserWindow, dialog } from "electron";
 import { safeHandle } from "./utils";
 import { SessionService } from "../services/SessionService";
 import { RiotAutomationService } from "../services/RiotAutomationService";
-import { RiotSessionService } from "../services/riot/RiotSessionService";
 import { LaunchGameData } from "./types";
 import { parsePayload, idSchema, launchGameDataSchema } from "./schemas";
 
@@ -12,7 +11,6 @@ export function registerRiotHandlers(
   getStatus: () => Promise<{ status: string; accountId?: string }>,
   sessionService: SessionService,
   automationService: RiotAutomationService,
-  riotSessionService: RiotSessionService,
 ) {
   safeHandle("select-riot-path", async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -49,15 +47,5 @@ export function registerRiotHandlers(
       await launchGame(validated as LaunchGameData);
     }
     return true;
-  });
-
-  safeHandle("riot-capture-session", async (_e, id) => {
-    const validId = parsePayload(idSchema, id, "riot-capture-session");
-    return riotSessionService.captureSession(validId);
-  });
-
-  safeHandle("riot-has-session", async (_e, id) => {
-    const validId = parsePayload(idSchema, id, "riot-has-session");
-    return riotSessionService.hasSession(validId);
   });
 }
