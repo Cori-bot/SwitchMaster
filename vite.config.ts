@@ -24,6 +24,7 @@ export default defineConfig({
             }
             if (
               norm.includes("/framer-motion/") ||
+              norm.includes("/motion/") ||
               norm.includes("/motion-dom/") ||
               norm.includes("/motion-utils/")
             ) {

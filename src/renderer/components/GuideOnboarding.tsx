@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { m, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "motion/react";
 import {
   ChevronRight,
   ChevronLeft,

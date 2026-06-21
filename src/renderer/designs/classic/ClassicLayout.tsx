@@ -5,7 +5,7 @@ import TopBar from "../../components/TopBar";
 import Settings from "../../components/Settings";
 import AddAccountModal from "../../components/AddAccountModal";
 import { DesignProps } from "../types";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m } from "motion/react";
 import { useAccountModal } from "../../hooks/useAccountModal";
 import NotificationItem from "../../components/NotificationItem";
 import { useNotifications } from "../../hooks/useNotifications";

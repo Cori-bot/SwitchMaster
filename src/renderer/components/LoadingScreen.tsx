@@ -1,5 +1,5 @@
 import React from "react";
-import { m } from "framer-motion";
+import { m } from "motion/react";
 import logo from "@assets/switchmaster/switchmaster-icon.svg";
 
 const LoadingScreen: React.FC = () => {

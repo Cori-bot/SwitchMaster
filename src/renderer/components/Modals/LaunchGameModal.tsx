@@ -1,5 +1,5 @@
 import React from "react";
-import { m, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "motion/react";
 import { Play } from "lucide-react";
 
 interface LaunchGameModalProps {

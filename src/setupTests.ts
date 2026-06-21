@@ -50,7 +50,7 @@ const motionProxy = {
     React.createElement("li", { ...props, ref }, children),
   ),
 };
-vi.mock("framer-motion", () => ({
+vi.mock("motion/react", () => ({
   motion: motionProxy,
   m: motionProxy,
   AnimatePresence: ({ children }: any) => children,

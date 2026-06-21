@@ -63,7 +63,7 @@ vi.mock("../hooks/useAppIpc", () => ({
 vi.mock("../components/LoadingScreen", () => ({
   default: () => <div data-testid="ready">READY</div>,
 }));
-vi.mock("framer-motion", () => {
+vi.mock("motion/react", () => {
   // Proxy : n'importe quel tag (m.div, motion.button, ...) devient un
   // composant passe-plat qui ignore les props d'animation.
   const makeProxy = () =>

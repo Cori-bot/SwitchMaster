@@ -4,7 +4,7 @@ import Dashboard from "../components/Dashboard";
 import { Account } from "../hooks/useAccounts";
 
 // Mock framer-motion pour simplifier les tests
-vi.mock("framer-motion", () => {
+vi.mock("motion/react", () => {
   const motion = {
     div: ({ children, className, onClick, ...props }: any) => (
       <div className={className} onClick={onClick} {...props}>

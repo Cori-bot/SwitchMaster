@@ -1,5 +1,5 @@
 import React from "react";
-import { m, AnimatePresence, Variants } from "framer-motion";
+import { m, AnimatePresence, Variants } from "motion/react";
 import AccountCard from "./AccountCard";
 import { PlusCircle } from "lucide-react";
 import { Account } from "../hooks/useAccounts";

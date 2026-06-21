@@ -9,7 +9,7 @@ vi.mock("@assets/valorant.png", () => ({ default: "valorant.png" }));
 vi.mock("@assets/logo.png", () => ({ default: "logo.png" }));
 
 // Mock framer-motion
-vi.mock("framer-motion", () => {
+vi.mock("motion/react", () => {
   const motion = {
     div: ({ children, ...props }: any) => {
       const {

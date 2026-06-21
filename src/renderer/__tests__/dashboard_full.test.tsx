@@ -10,7 +10,7 @@ import Dashboard from "../components/Dashboard";
 import { Account } from "../hooks/useAccounts";
 
 // Mock framer-motion
-vi.mock("framer-motion", () => {
+vi.mock("motion/react", () => {
   const motion = {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
     button: ({ children, ...props }: any) => (

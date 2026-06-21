@@ -11,7 +11,7 @@ vi.mock("@assets/valorant.png", () => ({ default: "mock-val-icon" }));
 vi.mock("@assets/league.png", () => ({ default: "mock-lol-icon" }));
 
 // Mock framer-motion car les animations peuvent gêner les tests
-vi.mock("framer-motion", () => {
+vi.mock("motion/react", () => {
   const motion = {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
     button: ({ children, ...props }: any) => (
