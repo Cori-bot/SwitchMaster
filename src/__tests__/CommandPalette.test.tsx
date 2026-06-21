@@ -62,4 +62,34 @@ describe("CommandPalette", () => {
 
     expect(onSwitch).toHaveBeenCalledWith("a1");
   });
+
+  it("la commande Settings appelle onOpenSettings", () => {
+    const onOpenSettings = vi.fn();
+    render(
+      <CommandPalette
+        accounts={accounts}
+        onSwitchSession={vi.fn()}
+        onOpenSettings={onOpenSettings}
+        initialOpen
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("cmd-settings"));
+    expect(onOpenSettings).toHaveBeenCalled();
+  });
+
+  it("la commande Lock appelle systemActions.onLock", () => {
+    const onLock = vi.fn();
+    render(
+      <CommandPalette
+        accounts={accounts}
+        onSwitchSession={vi.fn()}
+        systemActions={{ onLock }}
+        initialOpen
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("cmd-lock"));
+    expect(onLock).toHaveBeenCalled();
+  });
 });

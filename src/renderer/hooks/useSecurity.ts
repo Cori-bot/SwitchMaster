@@ -50,6 +50,20 @@ export const useSecurity = () => {
     }
   };
 
+  const lock = useCallback(async () => {
+    try {
+      const isEnabled = await window.ipc.invoke("get-security-status");
+      if (isEnabled) {
+        setIsLocked(true);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      devError("Failed to lock:", err);
+      return false;
+    }
+  }, []);
+
   const disablePin = async (pin: string) => {
     setLoading(true);
     setError(null);
@@ -72,6 +86,7 @@ export const useSecurity = () => {
     verifyPin,
     setPin,
     disablePin,
+    lock,
     checkSecurityStatus,
     setError,
   };

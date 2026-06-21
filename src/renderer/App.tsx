@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 import SecurityLock from "./components/SecurityLock";
 import GuideOnboarding from "./components/GuideOnboarding";
@@ -55,13 +55,17 @@ const App = () => {
     setIsQuitModalOpen,
     closeUpdateModal,
   } = useAppIpc(handleSwitch);
-  const { isLocked, verifyPin, setPin, disablePin, checkSecurityStatus } =
+  const { isLocked, verifyPin, setPin, disablePin, lock, checkSecurityStatus } =
     useSecurity();
 
   // Security Modal State (for Settings)
   const [securityModalMode, setSecurityModalMode] = useState<
     "set" | "disable" | null
   >(null);
+
+  // Signal d'ouverture des réglages (déclenché depuis la command palette, etc.)
+  const [openSettingsSignal, setOpenSettingsSignal] = useState(0);
+  const requestOpenSettings = () => setOpenSettingsSignal((v) => v + 1);
 
   // GPU Modal
   const [gpuModalOpen, setGpuModalOpen] = useState(false);
@@ -112,21 +116,28 @@ const App = () => {
     checkUpdates: () => window.ipc.invoke("check-updates", true),
     selectRiotPath,
     updateConfig,
+    onLock: async () => {
+      const locked = await lock();
+      if (!locked) setSecurityModalMode("set");
+    },
   };
 
   return (
     <>
-      <CurrentDesign
-        accounts={accounts}
-        activeAccountId={activeAccountId}
-        config={config}
-        status={status}
-        actions={actions}
-        onSwitchSession={handleSwitch}
-        onOpenSettings={() => {}}
-        systemActions={systemActions}
-        updateInfo={updateInfo}
-      />
+      <Suspense fallback={<LoadingScreen />}>
+        <CurrentDesign
+          accounts={accounts}
+          activeAccountId={activeAccountId}
+          config={config}
+          status={status}
+          actions={actions}
+          onSwitchSession={handleSwitch}
+          onOpenSettings={requestOpenSettings}
+          openSettingsSignal={openSettingsSignal}
+          systemActions={systemActions}
+          updateInfo={updateInfo}
+        />
+      </Suspense>
 
       <QuitModal
         isOpen={isQuitModalOpen}
@@ -183,6 +194,7 @@ const App = () => {
         accounts={accounts}
         onSwitchSession={handleSwitch}
         systemActions={systemActions}
+        onOpenSettings={requestOpenSettings}
       />
 
       <LaunchGameModal

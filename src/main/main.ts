@@ -2,6 +2,7 @@ import { app, BrowserWindow, protocol, net, session, ipcMain } from "electron";
 import path from "path";
 import { pathToFileURL } from "url";
 import { devLog, devError } from "./logger";
+import { isInsideDir } from "./utils/pathSafety";
 
 import { ConfigService } from "./services/ConfigService";
 import { SecurityService } from "./services/SecurityService";
@@ -174,7 +175,14 @@ async function initApp() {
     );
     // ---------- /Security hardening ----------
 
-    // Enregistrement du protocole sm-img pour les images locales
+    // Enregistrement du protocole sm-img pour les images locales.
+    // Sécurité : ne sert QUE les fichiers contenus dans userData/account-images
+    // (où select-account-image copie les images) afin d'empêcher tout
+    // path traversal / exfiltration de fichiers système arbitraires.
+    const accountImagesDir = path.join(
+      app.getPath("userData"),
+      "account-images",
+    );
     protocol.handle("sm-img", (request) => {
       try {
         const parsedUrl = new URL(request.url);
@@ -186,7 +194,15 @@ async function initApp() {
           decodedPath = decodedPath.substring(1);
         }
 
-        const fileUrl = pathToFileURL(decodedPath).toString();
+        const absolutePath = path.resolve(decodedPath);
+        if (!isInsideDir(accountImagesDir, absolutePath)) {
+          devError(
+            `[sm-img] Accès refusé (hors account-images): ${absolutePath}`,
+          );
+          return new Response("Forbidden", { status: 403 });
+        }
+
+        const fileUrl = pathToFileURL(absolutePath).toString();
         return net.fetch(fileUrl);
       } catch (e) {
         devError(`[sm-img] Erreur pour ${request.url}:`, e);

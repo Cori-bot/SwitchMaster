@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Dashboard from "../../components/Dashboard";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
@@ -18,8 +18,13 @@ export const ClassicLayout: React.FC<DesignProps> = ({
   actions,
   systemActions,
   onSwitchSession,
+  openSettingsSignal,
 }) => {
   const [view, setView] = useState("dashboard");
+
+  useEffect(() => {
+    if (openSettingsSignal) setView("settings");
+  }, [openSettingsSignal]);
   const [filter, setFilter] = useState<
     "all" | "favorite" | "valorant" | "league"
   >("all");

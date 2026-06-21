@@ -5,6 +5,8 @@ import { Account } from "../../shared/types";
 export interface CommandPaletteSystemActions {
   openSecurityModal?: (mode: "set" | "disable" | null) => void;
   checkUpdates?: () => void | Promise<unknown>;
+  /** Verrouille immédiatement l'app si un PIN est configuré, sinon ouvre la définition de PIN. */
+  onLock?: () => void | Promise<unknown>;
 }
 
 export interface CommandPaletteProps {
@@ -137,9 +139,7 @@ export const CommandPalette = ({
             </Command.Item>
             <Command.Item
               value="lock"
-              onSelect={() =>
-                run(() => systemActions?.openSecurityModal?.("set"))
-              }
+              onSelect={() => run(() => systemActions?.onLock?.())}
               style={itemStyle}
               data-testid="cmd-lock"
             >
