@@ -42,8 +42,20 @@ export class RiotAutomationService implements ILauncherService {
   public async killProcesses(): Promise<void> {
     try {
       try {
+        // Tuer TOUS les process Riot (+ arbre /T) : RiotClientServices ne suffit
+        // pas, le client UX tourne sous plusieurs "Riot Client.exe" qui, s'ils
+        // survivent, empêchent le rechargement propre de la session restaurée.
         await execAsync(
-          'taskkill /F /IM "RiotClientServices.exe" /IM "LeagueClient.exe" /IM "VALORANT.exe"',
+          "taskkill /F /T " +
+            '/IM "RiotClientServices.exe" ' +
+            '/IM "Riot Client.exe" ' +
+            '/IM "RiotClientUx.exe" ' +
+            '/IM "RiotClientUxRender.exe" ' +
+            '/IM "RiotClientCrashHandler.exe" ' +
+            '/IM "LeagueClient.exe" ' +
+            '/IM "LeagueClientUx.exe" ' +
+            '/IM "LeagueClientUxRender.exe" ' +
+            '/IM "VALORANT.exe"',
         );
       } catch (e) {
         devDebug(
