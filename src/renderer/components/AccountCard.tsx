@@ -1,5 +1,5 @@
 import React from "react";
-import { MoreVertical, Play, Trash2, Edit2, Star } from "lucide-react";
+import { MoreVertical, Play, Trash2, Edit2, Star, Loader2 } from "lucide-react";
 import { Account } from "../hooks/useAccounts";
 
 import leagueIcon from "@assets/games/league-of-legends-icon.svg";
@@ -17,6 +17,7 @@ import { getRankIconUrl } from "../utils/rankIcon";
 interface AccountCardProps {
   account: Account;
   isActive?: boolean;
+  isSwitching?: boolean;
   onSwitch: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (account: Account) => void;
@@ -32,6 +33,7 @@ interface AccountCardProps {
 const AccountCard: React.FC<AccountCardProps> = ({
   account,
   isActive,
+  isSwitching,
   onSwitch,
   onDelete,
   onEdit,
@@ -220,20 +222,31 @@ const AccountCard: React.FC<AccountCardProps> = ({
         {renderStats()}
 
         <button
+          disabled={isSwitching}
           onClick={() => {
+            if (isSwitching) return;
             if (isActive) {
               onReconnect?.(account);
             } else {
               onSwitch(account.id);
             }
           }}
-          className={`w-full flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all duration-200 ${ACTIVE_SCALE} group/btn ${
-            isActive
-              ? "bg-blue-600/10 text-blue-500 border border-blue-600/50 hover:bg-blue-600/20 cursor-pointer"
-              : "bg-white text-black hover:bg-gray-200 cursor-pointer"
-          }`}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all duration-200 group/btn",
+            ACTIVE_SCALE,
+            isSwitching
+              ? "bg-white/10 text-gray-300 cursor-wait"
+              : isActive
+                ? "bg-blue-600/10 text-blue-500 border border-blue-600/50 hover:bg-blue-600/20 cursor-pointer"
+                : "bg-white text-black hover:bg-gray-200 cursor-pointer",
+          )}
         >
-          {isActive ? (
+          {isSwitching ? (
+            <>
+              <Loader2 size={ICON_SIZE_MEDIUM} className="animate-spin" />
+              Connexion…
+            </>
+          ) : isActive ? (
             <>
               <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
               Connecté

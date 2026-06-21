@@ -18,7 +18,14 @@ import { ClassicLayout } from "./designs/classic/ClassicLayout";
 
 const App = () => {
   const { config, updateConfig, selectRiotPath } = useConfig();
-  const { accounts, activeAccountId, actions } = useAccountManager();
+  const {
+    accounts,
+    activeAccountId,
+    switchingId,
+    switchError,
+    clearSwitchError,
+    actions,
+  } = useAccountManager();
 
   // Launch Game Modal State
   const [isLaunchGameOpen, setIsLaunchGameOpen] = useState(false);
@@ -128,6 +135,9 @@ const App = () => {
         onSwitchSession={handleSwitch}
         onOpenSettings={requestOpenSettings}
         openSettingsSignal={openSettingsSignal}
+        switchingId={switchingId}
+        switchError={switchError}
+        onClearSwitchError={clearSwitchError}
         systemActions={systemActions}
         updateInfo={updateInfo}
       />

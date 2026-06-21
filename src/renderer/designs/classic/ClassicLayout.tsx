@@ -19,6 +19,9 @@ export const ClassicLayout: React.FC<DesignProps> = ({
   systemActions,
   onSwitchSession,
   openSettingsSignal,
+  switchingId,
+  switchError,
+  onClearSwitchError,
 }) => {
   const [view, setView] = useState("dashboard");
 
@@ -30,7 +33,15 @@ export const ClassicLayout: React.FC<DesignProps> = ({
   >("all");
   const modal = useAccountModal(actions);
 
-  const { notifications, removeNotification } = useNotifications();
+  const { notifications, removeNotification, addNotification } =
+    useNotifications();
+
+  useEffect(() => {
+    if (switchError) {
+      addNotification(switchError, "error");
+      onClearSwitchError?.();
+    }
+  }, [switchError, addNotification, onClearSwitchError]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans select-none relative">
@@ -50,6 +61,7 @@ export const ClassicLayout: React.FC<DesignProps> = ({
               accounts={accounts}
               filter={filter}
               activeAccountId={activeAccountId || undefined}
+              switchingId={switchingId}
               onSwitch={onSwitchSession}
               onDelete={actions.deleteAccount}
               onEdit={modal.openEdit}

@@ -26,6 +26,12 @@ export interface DesignProps {
    */
   openSettingsSignal?: number;
 
+  /** Compte en cours de bascule (feedback de chargement). */
+  switchingId?: string | null;
+  /** Message d'erreur de la dernière bascule échouée. */
+  switchError?: string | null;
+  onClearSwitchError?: () => void;
+
   // System Metadata
   updateInfo?: any;
 

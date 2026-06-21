@@ -22,6 +22,7 @@ interface DashboardProps {
   onToggleFavorite: (account: Account) => void;
   onAddAccount: () => void;
   onReorder: (accountIds: string[]) => void;
+  switchingId?: string | null;
 }
 
 const containerVariants: Variants = {
@@ -57,9 +58,14 @@ const Dashboard: React.FC<DashboardProps> = ({
   onToggleFavorite,
   onAddAccount,
   onReorder,
+  switchingId,
 }) => {
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [localAccounts, setLocalAccounts] = React.useState<Account[]>(accounts);
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"order" | "name" | "favorite">(
+    "order",
+  );
   const { config, updateConfig } = useConfig();
 
   // Modal states
@@ -107,16 +113,32 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const filteredAccounts = React.useMemo(() => {
-    return localAccounts.filter((acc) => {
+    const q = search.trim().toLowerCase();
+    let result = localAccounts.filter((acc) => {
       if (filter === "favorite") return acc.isFavorite;
       if (filter === "valorant") return acc.gameType === "valorant";
       if (filter === "league") return acc.gameType === "league";
       return true;
     });
-  }, [localAccounts, filter]);
+    if (q) {
+      result = result.filter((acc) =>
+        `${acc.name} ${acc.riotId ?? ""} ${(acc.tags ?? []).join(" ")}`
+          .toLowerCase()
+          .includes(q),
+      );
+    }
+    if (sortBy === "name") {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "favorite") {
+      result = [...result].sort(
+        (a, b) => Number(!!b.isFavorite) - Number(!!a.isFavorite),
+      );
+    }
+    return result;
+  }, [localAccounts, filter, search, sortBy]);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
-    if (filter !== "all") return;
+    if (filter !== "all" || sortBy !== "order" || search.trim()) return;
     e.dataTransfer.setData("accountId", id);
     setDraggedId(id);
     e.dataTransfer.effectAllowed = "move";
@@ -136,7 +158,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
-    if (filter !== "all") return;
+    if (filter !== "all" || sortBy !== "order" || search.trim()) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
 
@@ -231,6 +253,27 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="flex flex-col h-full">
+      <div className="flex items-center gap-3 mb-5 shrink-0">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Rechercher un compte (nom, Riot ID, tag)…"
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500/50 transition-all"
+        />
+        <select
+          value={sortBy}
+          onChange={(e) =>
+            setSortBy(e.target.value as "order" | "name" | "favorite")
+          }
+          className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500/50"
+          title="Trier"
+        >
+          <option value="order">Ordre manuel</option>
+          <option value="name">Nom (A-Z)</option>
+          <option value="favorite">Favoris d'abord</option>
+        </select>
+      </div>
       <m.div
         variants={containerVariants}
         initial="hidden"
@@ -255,6 +298,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <AccountCard
                 account={account}
                 isActive={account.id === activeAccountId}
+                isSwitching={switchingId === account.id}
                 onSwitch={onPreSwitch}
                 onDelete={onDelete}
                 onEdit={onEdit}
