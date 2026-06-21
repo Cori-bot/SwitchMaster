@@ -1,7 +1,7 @@
 # NEXT — SwitchMaster
 
 > Mis à jour le 2026-06-21. Roadmap post-v2.6 + retours terrain traités. Tout poussé sur `origin/main`.
-> État : typecheck OK, **559 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`).
+> État : typecheck OK, **553 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`).
 
 ## 1. Fait au dernier tour (retours terrain)
 
@@ -11,14 +11,11 @@
 
 ## 2. Reste à faire
 
-### ✅ Riot login session-swap — IMPLÉMENTÉ (`b2a80e3`), À TESTER EN CONDITIONS RÉELLES
+### ❌ Riot login session-swap — RETIRÉ (`af5e6db`) : incompatible avec le RSO actuel
 
-- `src/main/services/riot/RiotSessionService.ts` : capture/restore des fichiers de session Riot Client (`Data/RiotGamesPrivateSettings.yaml` + `Config/RiotClientSettings.yaml`) avec **backup** avant restauration ; intégré au flux `launch-game` (main.ts) avec **fallback frappe clavier** en cas d'échec ; opt-in `enableRiotSessionSwap` (défaut off) ; IPC `riot-capture-session`/`riot-has-session` (zod + allowlist) ; toggle Settings + item « Capturer la session » dans le menu ⋮ de la carte ; tests fs-extra.
-- **À VÉRIFIER en vrai** (je ne peux pas sans ton client Riot) :
-  1. Connecte-toi à un compte, active le toggle (Paramètres → « Connexion Riot par session »), capture la session (menu ⋮ de la carte).
-  2. Bascule sur un autre compte, recapture, puis reswitch → doit relancer en **auto-login sans taper le mot de passe**.
-  3. Si ça ne logue pas : ajuster la liste `RIOT_SESSION_FILES` dans `RiotSessionService.ts` (les fichiers de session ont pu bouger). Le **backup** (`userData/profiles/riot/__backup__`) permet de revenir en arrière.
-  4. Expiration (~72 h) → doit retomber sur la frappe clavier (fallback).
+Testé en conditions réelles : la capture fonctionnait, mais Riot **rejette la session restaurée** (`riot-login: Failed to authenticate with persisted login state` / `400 No RSO authorization` → page de login). Cause confirmée (logs Riot Client + recherche web TcNo / RiotSwitcher / valapidocs-techchrism) : les cookies RSO « Rester connecté » sont **rotatifs / à usage unique** (le `ssid` tourne à chaque ré-auth ; durée ~1 semaine) → un fichier de session copié devient périmé immédiatement. Même TcNo a des issues 2026 non résolues (#440/#510). Le file-swap n'est PAS une méthode de login fiable pour le Riot Client actuel.
+
+**Décision validée : connexion Riot = frappe du mot de passe automatisée**, fiabilisée : focus de fenêtre robuste (Win32 `SetForegroundWindow` + restore + vérif, re-focus par champ) dans `automate_login.ps1`, presse-papier (indépendant AZERTY/IME), et **kill complet** de tous les process Riot avant relance (gardé du travail session-swap).
 
 ### Finition classic — reste
 
@@ -36,5 +33,5 @@
 ## 3. Décisions clés (rappel)
 
 - **Un seul design : classic.** État global = custom hooks. Tailwind v4. Animations `motion/react` LazyMotion strict (`m`). Validation IPC zod. pnpm strict, Node 20.
-- Login Riot : **session-swap opt-in + fallback frappe** (validé). Jamais d'automation anti-cheat.
-- Commits sur `main`, **non poussés** (push sur demande). 1 chantier ≈ 1 commit, typecheck+test verts avant chaque commit.
+- Login Riot : **frappe du mot de passe automatisée** (session-swap retiré, incompatible RSO 2026 — cookies rotatifs). Jamais d'automation anti-cheat.
+- Commits sur `main`, poussés sur `origin` au fil de l'eau. 1 chantier ≈ 1 commit, typecheck+test verts avant chaque commit.
