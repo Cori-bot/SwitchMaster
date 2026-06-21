@@ -1,6 +1,7 @@
 import React from "react";
 import { m, AnimatePresence, Variants } from "motion/react";
 import AccountCard from "./AccountCard";
+import Dropdown from "./Dropdown";
 import { PlusCircle } from "lucide-react";
 import { Account } from "../hooks/useAccounts";
 import {
@@ -261,19 +262,16 @@ const Dashboard: React.FC<DashboardProps> = ({
           placeholder="Rechercher un compte (nom, Riot ID, tag)…"
           className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500/50 transition-all"
         />
-        <select
+        <Dropdown<"order" | "name" | "favorite">
           value={sortBy}
-          onChange={(e) =>
-            setSortBy(e.target.value as "order" | "name" | "favorite")
-          }
-          className="bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500/50"
-          style={{ colorScheme: "dark" }}
+          onChange={setSortBy}
           title="Trier"
-        >
-          <option value="order">Ordre manuel</option>
-          <option value="name">Nom (A-Z)</option>
-          <option value="favorite">Favoris d'abord</option>
-        </select>
+          options={[
+            { value: "order", label: "Ordre manuel" },
+            { value: "name", label: "Nom (A-Z)" },
+            { value: "favorite", label: "Favoris d'abord" },
+          ]}
+        />
       </div>
       <m.div
         variants={containerVariants}

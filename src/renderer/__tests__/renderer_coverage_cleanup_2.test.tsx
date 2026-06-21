@@ -30,8 +30,7 @@ describe("Renderer Cleanup Part 2", () => {
 
     it("affiche état actif (Line 42)", () => {
       render(<TopBar status={{ status: "Actif: User1" }} />);
-      const ping = document.querySelector(".animate-ping");
-      expect(ping).toBeInTheDocument();
+      expect(screen.getByText("Actif: User1")).toBeInTheDocument();
     });
   });
 

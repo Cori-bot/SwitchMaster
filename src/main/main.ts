@@ -11,7 +11,6 @@ import { RiotAutomationService } from "./services/RiotAutomationService";
 import { SessionService } from "./services/SessionService";
 import { SystemService } from "./services/SystemService";
 import { StatsService } from "./services/StatsService";
-import { LcuLocalService } from "./services/LcuLocalService";
 
 // Capture globale des erreurs fatales (Production Stability)
 process.on("uncaughtException", (err) => {
@@ -97,7 +96,6 @@ const sessionService = new SessionService(
   configService,
 );
 const systemService = new SystemService();
-const lcuLocalService = new LcuLocalService();
 
 const launcherFactory = new LauncherFactory([riotAutomationService]);
 
@@ -255,7 +253,6 @@ async function initApp() {
       sessionService,
       systemService,
       statsService,
-      lcuLocalService,
       launcherFactory,
     });
 
@@ -351,7 +348,6 @@ async function initApp() {
       sessionService,
       systemService,
       statsService,
-      lcuLocalService,
       launcherFactory,
     });
 

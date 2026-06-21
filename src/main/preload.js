@@ -32,7 +32,6 @@ const INVOKE_CHANNELS = new Set([
   "minimize-app",
   "restart-app",
   "is-valorant-running",
-  "get-lcu-active-account",
   "steam-is-installed",
   "steam-list-profiles",
   "steam-capture-profile",
