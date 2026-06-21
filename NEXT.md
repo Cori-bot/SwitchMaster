@@ -1,37 +1,57 @@
-# NEXT — SwitchMaster
+# NEXT — Session 2026-06-21
 
-> Mis à jour le 2026-06-21. Roadmap post-v2.6 + retours terrain traités. Tout poussé sur `origin/main`.
-> État : typecheck OK, **553 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`).
+> Working tree propre, **tout poussé sur `origin/main`**. typecheck OK, **553 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`). App en **v2.6.0**.
 
-## 1. Fait au dernier tour (retours terrain)
+## État courant
 
-- ✅ **Bugs** (`3bef9f4`) : « Actif: undefined » corrigé à la source (`getStatus` enrichi) ; icônes de rang via SVG locaux (la CSP bloquait tracker.gg).
-- ✅ **Suppressions** (`3bef9f4`) : designs **pro + modern** retirés (classic seul, rendu direct, sélecteur retiré) ; **hotkeys Alt** retirés ; `@dnd-kit` retiré.
-- ✅ **Finition classic** (`2af53cb`) : recherche + tri (Dashboard) ; feedback de switch (`switchingId` → spinner « Connexion… ») ; notifications d'erreur de switch (`switchError`).
+### Fait
 
-## 2. Reste à faire
+- **Meta / conventions** (`b395827`) : `AGENTS.md`, `.claude/CLAUDE.md`, `README.md` réalignés sur le code réel ; `package.json` → 2.6.0 ; `.claude/settings.json` (hook SessionStart) ; `.gitignore`.
+- **Sécurité + bugs** (`ebc27c4`) : faille **path-traversal `sm-img`** colmatée (helper testé `isInsideDir`) ; `<Suspense>` ; command palette « Settings »/« Lock » câblés. Bugs terrain (`3bef9f4`) : « Actif: undefined » corrigé à la source (`getStatus` enrichi du nom) ; **icônes de rang via SVG locaux** (`utils/rankIcon.ts`) car la CSP bloque les images externes tracker.gg.
+- **Un seul design : classic** (`3bef9f4`) — designs **pro + modern supprimés** (rendu direct de `ClassicLayout`, sélecteur retiré), **`@dnd-kit` retiré**, **hotkeys Alt retirés**.
+- **DRY / conventions** (`4f7c53e`) : util `cn()`, hook `useAccountModal`, deps mortes retirées (marked/dompurify/chokidar/yaml), `contexts/` supprimé.
+- **Perf** (`4904fdb`) : refresh stats gated sur la visibilité de la fenêtre.
+- **Deps** (`62d03af`) : react 19.2.7, electron-updater 6.8.9, zod 4.4.3, tailwind 4.3.1, **framer-motion → motion 12.40**, **lucide-react v1**.
+- **Stats Riot** : tracker.gg **fiabilisé** (cache TTL + fallback + retry/backoff, `fc0ec17`) ; **détection LCU locale** opt-in, lecture seule (`538747c`).
+- **Comptes** (`2e71970`) : **tags / notes / couleur d'accent** par compte (+ recherche par tag dans la palette).
+- **Steam multi-launcher** (`acddf22`) : `SteamAdapter` câblé (capture/restore de profil) via IPC + section Settings « Steam (expérimental) ».
+- **Finition classic** (`2af53cb`) : **recherche + tri** (Dashboard) ; **feedback de switch** (`switchingId` → spinner « Connexion… » + bouton désactivé) ; **notifications d'erreur** de switch (`switchError`). Dropdown de tri sombre (`c4a2fad`).
+- **Connexion Riot = frappe automatisée, fiabilisée** (`af5e6db`) : focus de fenêtre robuste (Win32 `SetForegroundWindow` + restore + vérif foreground, 8 essais ; re-focus avant chaque champ) dans `automate_login.ps1` ; presse-papier (indépendant AZERTY/IME) ; **kill complet** de tous les process Riot (`Riot Client.exe`, `RiotClientUx*`, … + arbre `/T`) avant relance.
 
-### ❌ Riot login session-swap — RETIRÉ (`af5e6db`) : incompatible avec le RSO actuel
+### Reste
 
-Testé en conditions réelles : la capture fonctionnait, mais Riot **rejette la session restaurée** (`riot-login: Failed to authenticate with persisted login state` / `400 No RSO authorization` → page de login). Cause confirmée (logs Riot Client + recherche web TcNo / RiotSwitcher / valapidocs-techchrism) : les cookies RSO « Rester connecté » sont **rotatifs / à usage unique** (le `ssid` tourne à chaque ré-auth ; durée ~1 semaine) → un fichier de session copié devient périmé immédiatement. Même TcNo a des issues 2026 non résolues (#440/#510). Le file-swap n'est PAS une méthode de login fiable pour le Riot Client actuel.
+- [ ] **« Dernière utilisation »** par compte : poser `lastUsed` (timestamp) côté `AccountService` au switch + afficher « il y a X » sur la carte (skeletons stats déjà présents).
+- [ ] **Système launcher unifié** (« plus tard », demande explicite) : intégrer Steam (déjà câblé en Settings) + Epic/EA/Battle.net/Ubisoft au **flux de comptes** (mapping profil↔compte, lancement depuis le dashboard, adapters manquants).
+- [ ] Tester en vrai la **frappe fiabilisée** Riot ; ajuster délais/séquence si un champ rate.
+- [ ] Deps majeures différées : **Vite 8**, **TypeScript 6** (à évaluer, breaking changes).
+- [ ] **Distribution signée** (mémoire `distribution-signing-pending`).
 
-**Décision validée : connexion Riot = frappe du mot de passe automatisée**, fiabilisée : focus de fenêtre robuste (Win32 `SetForegroundWindow` + restore + vérif, re-focus par champ) dans `automate_login.ps1`, presse-papier (indépendant AZERTY/IME), et **kill complet** de tous les process Riot avant relance (gardé du travail session-swap).
+## Décisions clés
 
-### Finition classic — reste
+- **Connexion Riot = frappe du mot de passe automatisée.** Le **session-swap a été retiré** (`af5e6db`) : testé en vrai, Riot rejette une session restaurée (`Failed to authenticate with persisted login state` / `400 No RSO authorization`). Cause confirmée (logs + recherche TcNo/RiotSwitcher/valapidocs) : cookies RSO « Rester connecté » **rotatifs / à usage unique** (`ssid` tourne à chaque ré-auth, ~1 semaine) → un fichier copié est périmé. Même TcNo a des issues 2026 non résolues. **Le file-swap n'est pas fiable pour le Riot Client actuel.**
+- **Un seul design : classic** (pro/modern jugés inutiles, supprimés).
+- État global = custom hooks (pas de Context). Tailwind v4 (`@tailwindcss/vite` + `@theme`). Animations **`motion/react`** en LazyMotion strict (`m`, jamais `motion.*`). Validation IPC **zod** obligatoire + allowlist preload. pnpm strict, Node 20.
+- LCU local & Steam = **opt-in**, jamais d'automation anti-cheat ; ids validés/sanitizés.
 
-- [ ] **« Dernière utilisation »** par compte : poser `lastUsed` (timestamp) côté `AccountService.switchAccount` + afficher « il y a X » sur la carte (skeletons stats déjà présents).
+## Fichiers modifiés
 
-### Plus tard (demande explicite : « on le fera plus tard »)
+```
+working tree propre — tout est commité et poussé sur origin/main
+(24 commits cette session : b395827 → a9b882e)
+```
 
-- [ ] **Système launcher unifié** : UI commune pour Steam (déjà câblé) + autres launchers (Epic/EA/Battle.net/Ubisoft) — gestion des profils capturés, mapping profil↔compte, lancement depuis le dashboard. Aujourd'hui Steam est exposé via Settings (capture/restore) mais pas intégré au flux de comptes.
+Principaux fichiers du dernier chantier (retrait session-swap + frappe fiabilisée) :
 
-### Divers / différé
+```
+D  src/main/services/riot/RiotSessionService.ts   (+ son test)
+M  src/main/main.ts  src/main/ipc.ts  src/main/ipc/riotHandlers.ts  src/main/preload.js
+M  src/main/services/RiotAutomationService.ts     (kill complet)
+M  src/scripts/automate_login.ps1                 (focus Win32 robuste)
+M  src/shared/types.ts
+M  src/renderer/components/{Settings,Dashboard,AccountCard}.tsx
+M  src/renderer/designs/classic/ClassicLayout.tsx
+```
 
-- [ ] Deps majeures : Vite 8, TypeScript 6 (à évaluer).
-- [ ] Distribution signée (mémoire `distribution-signing-pending`).
+## Prochaine étape recommandée
 
-## 3. Décisions clés (rappel)
-
-- **Un seul design : classic.** État global = custom hooks. Tailwind v4. Animations `motion/react` LazyMotion strict (`m`). Validation IPC zod. pnpm strict, Node 20.
-- Login Riot : **frappe du mot de passe automatisée** (session-swap retiré, incompatible RSO 2026 — cookies rotatifs). Jamais d'automation anti-cheat.
-- Commits sur `main`, poussés sur `origin` au fil de l'eau. 1 chantier ≈ 1 commit, typecheck+test verts avant chaque commit.
+Tester la **frappe fiabilisée** en vrai (bascule entre comptes) et, si OK, attaquer le **« dernière utilisation »** par compte (petit ajout backend `lastUsed` + affichage carte), puis le **système launcher unifié** quand tu voudras.
