@@ -32,6 +32,7 @@ const INVOKE_CHANNELS = new Set([
   "minimize-app",
   "restart-app",
   "is-valorant-running",
+  "get-lcu-active-account",
   "check-updates",
   "simulate-update",
   "download-update",

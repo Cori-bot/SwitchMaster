@@ -6,6 +6,7 @@ import {
   Info,
   RefreshCw,
   Clock,
+  Gamepad2,
 } from "lucide-react";
 import { Config } from "../../shared/types";
 import logoImg from "@assets/switchmaster/switchmaster-icon.svg";
@@ -137,6 +138,32 @@ const Settings: React.FC<SettingsProps> = ({
   onCheckUpdates,
   onOpenGPUModal,
 }) => {
+  const [lcuAccount, setLcuAccount] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!config?.enableLcuDetection) {
+      setLcuAccount(null);
+      return;
+    }
+    let active = true;
+    window.ipc
+      .invoke("get-lcu-active-account")
+      .then((res: unknown) => {
+        if (!active) return;
+        const id =
+          res && typeof res === "object" && "riotId" in res
+            ? String((res as { riotId: string }).riotId)
+            : null;
+        setLcuAccount(id);
+      })
+      .catch(() => {
+        if (active) setLcuAccount(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [config?.enableLcuDetection]);
+
   if (!config) return null;
 
   const handleChange = <K extends keyof Config>(key: K, value: Config[K]) => {
@@ -346,6 +373,28 @@ const Settings: React.FC<SettingsProps> = ({
               <Shield size={ICON_SIZE_XSMALL} />
               Définir / Modifier le code PIN
             </button>
+          </div>
+        )}
+      </SettingItem>
+
+      <SettingItem
+        icon={Gamepad2}
+        title="Détection du compte connecté (LCU)"
+        description="Lit le client Riot local (lecture seule) pour afficher le compte actuellement connecté."
+      >
+        <Checkbox
+          id="enableLcuDetection"
+          label="Activer la détection LCU locale"
+          subLabel="⚠️ API non supportée par Riot — usage à vos risques (CGU). Lecture seule, aucune automation."
+          checked={config.enableLcuDetection ?? false}
+          onChange={(val) => handleChange("enableLcuDetection", val)}
+        />
+        {config.enableLcuDetection && (
+          <div className="mt-3 text-sm text-gray-400">
+            Compte Riot détecté :{" "}
+            <span className="font-mono text-blue-400">
+              {lcuAccount ?? "aucun (client non lancé)"}
+            </span>
           </div>
         )}
       </SettingItem>

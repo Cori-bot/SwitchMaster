@@ -26,6 +26,8 @@ export interface Config {
   showLaunchGamePopup?: boolean;
   activeDesignModule?: "classic" | "modern" | "pro";
   autoUpdate?: boolean;
+  /** Détection (lecture seule, opt-in) du compte Riot connecté via le client local. */
+  enableLcuDetection?: boolean;
 }
 
 export interface Account {

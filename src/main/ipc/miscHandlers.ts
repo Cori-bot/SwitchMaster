@@ -7,6 +7,7 @@ import { IpcContext } from "./types";
 import { devLog, devError } from "../logger";
 import { AccountService } from "../services/AccountService";
 import { ConfigService } from "../services/ConfigService";
+import { LcuLocalService } from "../services/LcuLocalService";
 import {
   parsePayload,
   booleanSchema,
@@ -19,6 +20,7 @@ export function registerMiscHandlers(
   context: IpcContext,
   accountService: AccountService,
   configService: ConfigService,
+  lcuLocalService: LcuLocalService,
 ) {
   safeHandle("select-account-image", async () => {
     const win = getMainWindow();
@@ -145,4 +147,10 @@ export function registerMiscHandlers(
   });
 
   safeHandle("is-valorant-running", () => context.isValorantRunning());
+
+  safeHandle("get-lcu-active-account", async () => {
+    // Opt-in strict : ne fait rien si la détection LCU n'est pas activée.
+    if (!configService.getConfig().enableLcuDetection) return null;
+    return lcuLocalService.getActiveAccount();
+  });
 }
