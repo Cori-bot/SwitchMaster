@@ -1,57 +1,61 @@
-# NEXT — Session 2026-06-21
+# NEXT — Session 2026-06-21 (suite)
 
-> Working tree propre, **tout poussé sur `origin/main`**. typecheck OK, **553 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`). App en **v2.6.0**.
+> Working tree propre, **tout poussé sur `origin/main`** (`HEAD = 7713158`). typecheck OK, **569 tests verts**. App en **v2.6.0**.
 
 ## État courant
 
-### Fait
+### Fait (cette session)
 
-- **Meta / conventions** (`b395827`) : `AGENTS.md`, `.claude/CLAUDE.md`, `README.md` réalignés sur le code réel ; `package.json` → 2.6.0 ; `.claude/settings.json` (hook SessionStart) ; `.gitignore`.
-- **Sécurité + bugs** (`ebc27c4`) : faille **path-traversal `sm-img`** colmatée (helper testé `isInsideDir`) ; `<Suspense>` ; command palette « Settings »/« Lock » câblés. Bugs terrain (`3bef9f4`) : « Actif: undefined » corrigé à la source (`getStatus` enrichi du nom) ; **icônes de rang via SVG locaux** (`utils/rankIcon.ts`) car la CSP bloque les images externes tracker.gg.
-- **Un seul design : classic** (`3bef9f4`) — designs **pro + modern supprimés** (rendu direct de `ClassicLayout`, sélecteur retiré), **`@dnd-kit` retiré**, **hotkeys Alt retirés**.
-- **DRY / conventions** (`4f7c53e`) : util `cn()`, hook `useAccountModal`, deps mortes retirées (marked/dompurify/chokidar/yaml), `contexts/` supprimé.
-- **Perf** (`4904fdb`) : refresh stats gated sur la visibilité de la fenêtre.
-- **Deps** (`62d03af`) : react 19.2.7, electron-updater 6.8.9, zod 4.4.3, tailwind 4.3.1, **framer-motion → motion 12.40**, **lucide-react v1**.
-- **Stats Riot** : tracker.gg **fiabilisé** (cache TTL + fallback + retry/backoff, `fc0ec17`) ; **détection LCU locale** opt-in, lecture seule (`538747c`).
-- **Comptes** (`2e71970`) : **tags / notes / couleur d'accent** par compte (+ recherche par tag dans la palette).
-- **Steam multi-launcher** (`acddf22`) : `SteamAdapter` câblé (capture/restore de profil) via IPC + section Settings « Steam (expérimental) ».
-- **Finition classic** (`2af53cb`) : **recherche + tri** (Dashboard) ; **feedback de switch** (`switchingId` → spinner « Connexion… » + bouton désactivé) ; **notifications d'erreur** de switch (`switchError`). Dropdown de tri sombre (`c4a2fad`).
-- **Connexion Riot = frappe automatisée, fiabilisée** (`af5e6db`) : focus de fenêtre robuste (Win32 `SetForegroundWindow` + restore + vérif foreground, 8 essais ; re-focus avant chaque champ) dans `automate_login.ps1` ; presse-papier (indépendant AZERTY/IME) ; **kill complet** de tous les process Riot (`Riot Client.exe`, `RiotClientUx*`, … + arbre `/T`) avant relance.
+- **Lecture des logs du Riot Client → vrai verdict de connexion** (`7713158`).
+  - Nouveau service `src/main/services/RiotLogService.ts` :
+    - `parseRiotLogLine()` (fonction **pure, testée**) calée sur les **vraies signatures** des logs (`<temps>| <NIVEAU>| <composant>: <message>`) :
+      - `rc-auth: SendLoginTelemetry: isloginSucessful: 1` → succès ; `: 0` → échec (message FR via `errorDescription`).
+      - `x-rso-error-id <code>` → erreur RSO (code capturé) ; `CaptchaEvent … "action":"shown"` → captcha ; `multifactor` → 2FA.
+      - **Garde anti-faux-positif** : `SendLoginTelemetryWithStaySignedIn … isloginSucessful: 0 … noLongLivedSession/longLivedSessionRejected` = bruit de **démarrage** (aucune session persistée) → `info` silencieux, **jamais** une erreur.
+    - `watchForOutcome()` : tail non bloquant du log le plus récent (baseline = fin du fichier → ne lit que l'après-frappe ; suit un nouveau fichier si le client en crée un) ; `getRecentLoginErrors()` pour diagnostic à la demande.
+  - Intégration : `RiotAutomationService.login()` lance le watcher en **fire-and-forget** (seulement si un sink est branché) ; le verdict est poussé au renderer via IPC **`riot-login-status`** → notification (succès/erreur/captcha) dans `ClassicLayout`.
+  - Câblage : sink dans `main.ts` → `mainWindow.webContents.send` ; canal ajouté à l'allowlist `preload.js` ; type partagé `RiotLoginEvent`/`RiotLoginPhase` dans `shared/types.ts` ; écoute dans `useAppIpc` (`loginEvent`) → prop `DesignProps.loginEvent`.
+- **Performance** (audit multi-agent 30 sous-agents + vérif adversariale ; seules 3 pistes réelles/sûres retenues, le reste **déjà fait**) :
+  - `App.tsx` : `handleSwitch` **mémoïsé** (`useCallback`, dep `actions.login` stable) → `useAppIpc` ne détache/rattache plus ses **6 listeners IPC** à chaque render.
+  - `RiotAutomationService.monitorRiotProcess` : **gaté sur la visibilité** → plus de spawn `tasklist` toutes les 30 s quand l'app est cachée dans le tray.
+- **Tests** : `src/__tests__/riotLogService.test.ts` (parser + watcher + `getRecentLoginErrors`, 16 cas dont l'anti-faux-positif) + cas « monitor caché » dans `riotAutomationService.test.ts`. **553 → 569**.
 
 ### Reste
 
-- [ ] **« Dernière utilisation »** par compte : poser `lastUsed` (timestamp) côté `AccountService` au switch + afficher « il y a X » sur la carte (skeletons stats déjà présents).
-- [ ] **Système launcher unifié** (« plus tard », demande explicite) : intégrer Steam (déjà câblé en Settings) + Epic/EA/Battle.net/Ubisoft au **flux de comptes** (mapping profil↔compte, lancement depuis le dashboard, adapters manquants).
-- [ ] Tester en vrai la **frappe fiabilisée** Riot ; ajuster délais/séquence si un champ rate.
-- [ ] Deps majeures différées : **Vite 8**, **TypeScript 6** (à évaluer, breaking changes).
+- [ ] **Tester en vrai** le verdict de login : faire un login avec mauvais mdp → notif rouge « Identifiants incorrects » ; captcha → notif « connexion manuelle ». Ajuster les messages si une `errorDescription` réelle non couverte apparaît.
+- [ ] (Optionnel) Exposer `getRecentLoginErrors` via un canal IPC + petit panneau « dernières erreurs Riot » dans Settings (le service est prêt et testé, non câblé en UI).
+- [ ] **« Dernière utilisation »** par compte : `lastUsed` (timestamp) côté `AccountService` au switch + « il y a X » sur la carte.
+- [ ] **Système launcher unifié** (« plus tard ») : intégrer Steam (déjà câblé en Settings) + Epic/EA/Battle.net/Ubisoft au flux de comptes.
+- [ ] Deps majeures différées : **Vite 8**, **TypeScript 6** (breaking changes à évaluer).
 - [ ] **Distribution signée** (mémoire `distribution-signing-pending`).
+- [ ] Rebuild `setup.exe` quand tu veux tester l'installeur (sinon `pnpm dev`).
 
 ## Décisions clés
 
-- **Connexion Riot = frappe du mot de passe automatisée.** Le **session-swap a été retiré** (`af5e6db`) : testé en vrai, Riot rejette une session restaurée (`Failed to authenticate with persisted login state` / `400 No RSO authorization`). Cause confirmée (logs + recherche TcNo/RiotSwitcher/valapidocs) : cookies RSO « Rester connecté » **rotatifs / à usage unique** (`ssid` tourne à chaque ré-auth, ~1 semaine) → un fichier copié est périmé. Même TcNo a des issues 2026 non résolues. **Le file-swap n'est pas fiable pour le Riot Client actuel.**
-- **Un seul design : classic** (pro/modern jugés inutiles, supprimés).
-- État global = custom hooks (pas de Context). Tailwind v4 (`@tailwindcss/vite` + `@theme`). Animations **`motion/react`** en LazyMotion strict (`m`, jamais `motion.*`). Validation IPC **zod** obligatoire + allowlist preload. pnpm strict, Node 20.
-- LCU local & Steam = **opt-in**, jamais d'automation anti-cheat ; ids validés/sanitizés.
+- **Le « SUCCESS » du PowerShell ne prouve que la frappe**, pas l'acceptation par Riot. Le vrai verdict (mauvais mdp, captcha, 2FA, rate-limit) **n'existe que dans les logs du Riot Client** → on les lit.
+- **Watcher en fire-and-forget**, non bloquant : le spinner se libère dès la frappe, le verdict arrive en notification asynchrone. Démarré **uniquement si un sink est branché** (en prod `main.ts` ; en test, aucun sink → comportement de `login()` inchangé, zéro I/O fichier parasite).
+- **Signature faisant autorité** : `rc-auth: SendLoginTelemetry: isloginSucessful: <0|1>` (NB : faute de frappe `isloginSucessful` présente dans la vraie chaîne Riot). Le `SendLoginTelemetryWithStaySignedIn` est du **démarrage**, pas un échec de frappe.
+- **Perf** : l'app était déjà bien optimisée (gating stats sur visibilité, `React.memo`, `LazyMotion`, `useMemo` `cardStyle`) ; on a évité les changements risqués non mesurés (pas de `backgroundThrottling:false`, pas de retrait des `app.commandLine`).
+- Rappels archi : état global = custom hooks (pas de Context) ; Tailwind v4 ; animations `motion/react` LazyMotion strict (`m`) ; validation IPC zod + allowlist preload ; pnpm strict, Node 20 ; **un seul design : classic**.
 
 ## Fichiers modifiés
 
 ```
-working tree propre — tout est commité et poussé sur origin/main
-(24 commits cette session : b395827 → a9b882e)
+A  src/main/services/RiotLogService.ts
+A  src/__tests__/riotLogService.test.ts
+M  src/main/services/RiotAutomationService.ts   (watcher login + monitor gaté visibilité)
+M  src/main/main.ts                             (sink riot-login-status)
+M  src/main/preload.js                          (canal riot-login-status)
+M  src/shared/types.ts                          (RiotLoginEvent / RiotLoginPhase)
+M  src/renderer/hooks/useAppIpc.ts              (loginEvent)
+M  src/renderer/App.tsx                         (handleSwitch mémoïsé + loginEvent)
+M  src/renderer/designs/types.ts               (DesignProps.loginEvent)
+M  src/renderer/designs/classic/ClassicLayout.tsx (notif verdict de login)
+M  src/__tests__/riotAutomationService.test.ts (mock isVisible/isDestroyed + test monitor caché)
 ```
 
-Principaux fichiers du dernier chantier (retrait session-swap + frappe fiabilisée) :
-
-```
-D  src/main/services/riot/RiotSessionService.ts   (+ son test)
-M  src/main/main.ts  src/main/ipc.ts  src/main/ipc/riotHandlers.ts  src/main/preload.js
-M  src/main/services/RiotAutomationService.ts     (kill complet)
-M  src/scripts/automate_login.ps1                 (focus Win32 robuste)
-M  src/shared/types.ts
-M  src/renderer/components/{Settings,Dashboard,AccountCard}.tsx
-M  src/renderer/designs/classic/ClassicLayout.tsx
-```
+(working tree propre — tout commité/poussé : `HEAD = 7713158`)
 
 ## Prochaine étape recommandée
 
-Tester la **frappe fiabilisée** en vrai (bascule entre comptes) et, si OK, attaquer le **« dernière utilisation »** par compte (petit ajout backend `lastUsed` + affichage carte), puis le **système launcher unifié** quand tu voudras.
+Tester en réel le verdict de login (mauvais mdp → notif rouge ; captcha/2FA → notif « manuel »), puis — si OK — attaquer le **« dernière utilisation »** par compte, ou exposer `getRecentLoginErrors` dans un petit panneau Settings de diagnostic.
