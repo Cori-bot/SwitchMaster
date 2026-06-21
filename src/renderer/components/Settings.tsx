@@ -271,6 +271,13 @@ const Settings: React.FC<SettingsProps> = ({
             checked={config.enableGPU ?? false}
             onChange={(val) => onOpenGPUModal(val)}
           />
+          <Checkbox
+            id="enableGlobalHotkeys"
+            label="Raccourcis globaux (Alt+1/2/3)"
+            subLabel="Bascule vers vos 3 premiers comptes via Alt+1, Alt+2, Alt+3 — même quand l'application n'est pas au premier plan."
+            checked={config.enableGlobalHotkeys ?? false}
+            onChange={(val) => handleChange("enableGlobalHotkeys", val)}
+          />
         </div>
       </SettingItem>
 
@@ -336,7 +343,7 @@ const Settings: React.FC<SettingsProps> = ({
           <Checkbox
             id="showLaunchGamePopup"
             label="Proposer de lancer le jeu après connexion"
-            subLabel="Affiche une fenêtre demandant si vous voulez lancer le jeu une fois connecté."
+            subLabel="Activé : une fenêtre demande s'il faut lancer le jeu. Désactivé : le jeu se lance automatiquement après chaque bascule de compte."
             checked={config.showLaunchGamePopup !== false}
             onChange={(val) => handleChange("showLaunchGamePopup", val)}
           />
