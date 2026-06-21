@@ -238,35 +238,6 @@ const Settings: React.FC<SettingsProps> = ({
         description="Gérez le comportement général de l'application."
       >
         <div className="space-y-2">
-          <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-4">
-            <label className="block text-sm text-gray-300 mb-2 font-bold">
-              Design de l'interface
-            </label>
-            <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
-              {(["classic", "modern", "pro"] as const).map((key) => {
-                const active = (config.activeDesignModule || "classic") === key;
-                const label =
-                  key === "classic"
-                    ? "Classic"
-                    : key === "modern"
-                      ? "Modern"
-                      : "Pro";
-                return (
-                  <button
-                    key={key}
-                    onClick={() => handleChange("activeDesignModule", key)}
-                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
-                      active
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
           <Checkbox
             id="showQuitModal"
             label="Confirmation de fermeture"
@@ -306,13 +277,6 @@ const Settings: React.FC<SettingsProps> = ({
             subLabel="Utilise le GPU pour soulager le CPU (Nécessite un redémarrage)."
             checked={config.enableGPU ?? false}
             onChange={(val) => onOpenGPUModal(val)}
-          />
-          <Checkbox
-            id="enableGlobalHotkeys"
-            label="Raccourcis globaux (Alt+1/2/3)"
-            subLabel="Bascule vers vos 3 premiers comptes via Alt+1, Alt+2, Alt+3 — même quand l'application n'est pas au premier plan."
-            checked={config.enableGlobalHotkeys ?? false}
-            onChange={(val) => handleChange("enableGlobalHotkeys", val)}
           />
         </div>
       </SettingItem>

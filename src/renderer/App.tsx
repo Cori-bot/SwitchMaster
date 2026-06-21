@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 import SecurityLock from "./components/SecurityLock";
 import GuideOnboarding from "./components/GuideOnboarding";
@@ -14,7 +14,7 @@ import { useAppIpc } from "./hooks/useAppIpc";
 import { useSecurity } from "./hooks/useSecurity";
 import { Account } from "../shared/types";
 
-import { DesignRegistry, DesignKey } from "./designs/registry";
+import { ClassicLayout } from "./designs/classic/ClassicLayout";
 
 const App = () => {
   const { config, updateConfig, selectRiotPath } = useConfig();
@@ -105,11 +105,6 @@ const App = () => {
     window.ipc.invoke("restart-app");
   };
 
-  // Resolve Design
-  const activeDesignKey = (config.activeDesignModule || "classic") as DesignKey;
-  const CurrentDesign =
-    DesignRegistry[activeDesignKey] || DesignRegistry.classic;
-
   const systemActions = {
     openSecurityModal: setSecurityModalMode,
     openGpuModal: handleOpenGpuModal,
@@ -124,20 +119,18 @@ const App = () => {
 
   return (
     <>
-      <Suspense fallback={<LoadingScreen />}>
-        <CurrentDesign
-          accounts={accounts}
-          activeAccountId={activeAccountId}
-          config={config}
-          status={status}
-          actions={actions}
-          onSwitchSession={handleSwitch}
-          onOpenSettings={requestOpenSettings}
-          openSettingsSignal={openSettingsSignal}
-          systemActions={systemActions}
-          updateInfo={updateInfo}
-        />
-      </Suspense>
+      <ClassicLayout
+        accounts={accounts}
+        activeAccountId={activeAccountId}
+        config={config}
+        status={status}
+        actions={actions}
+        onSwitchSession={handleSwitch}
+        onOpenSettings={requestOpenSettings}
+        openSettingsSignal={openSettingsSignal}
+        systemActions={systemActions}
+        updateInfo={updateInfo}
+      />
 
       <QuitModal
         isOpen={isQuitModalOpen}

@@ -5,13 +5,13 @@ import { AppStatus } from "../../shared/types";
 export interface UpdateInfo {
   isOpen: boolean;
   status:
-  | "idle"
-  | "checking"
-  | "available"
-  | "not-available"
-  | "downloading"
-  | "downloaded"
-  | "error";
+    | "idle"
+    | "checking"
+    | "available"
+    | "not-available"
+    | "downloading"
+    | "downloaded"
+    | "error";
   progress: number;
   version: string;
   releaseNotes: string;
@@ -36,7 +36,9 @@ export function useAppIpc(
   const updateStatusDisplay = (appStatus: AppStatus) => {
     if (appStatus && appStatus.status === "Active") {
       setStatus({
-        status: `Actif: ${appStatus.accountName}`,
+        status: appStatus.accountName
+          ? `Actif: ${appStatus.accountName}`
+          : "Actif",
         accountId: appStatus.accountId,
       });
     } else {
@@ -136,6 +138,7 @@ export function useAppIpc(
     updateInfo,
     setUpdateInfo,
     refreshStatus,
-    closeUpdateModal: () => setUpdateInfo((prev) => ({ ...prev, isOpen: false })),
+    closeUpdateModal: () =>
+      setUpdateInfo((prev) => ({ ...prev, isOpen: false })),
   };
 }

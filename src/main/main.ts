@@ -1,12 +1,4 @@
-import {
-  app,
-  BrowserWindow,
-  protocol,
-  net,
-  session,
-  ipcMain,
-  globalShortcut,
-} from "electron";
+import { app, BrowserWindow, protocol, net, session, ipcMain } from "electron";
 import path from "path";
 import { pathToFileURL } from "url";
 import { devLog, devError } from "./logger";
@@ -59,11 +51,6 @@ const trackedIntervals: NodeJS.Timeout[] = [];
 const trackedIpcChannels: string[] = ["log-to-main"];
 
 app.on("before-quit", () => {
-  try {
-    globalShortcut.unregisterAll();
-  } catch {
-    /* noop */
-  }
   for (const id of trackedIntervals) {
     try {
       clearInterval(id);
@@ -247,7 +234,13 @@ async function initApp() {
         const isRunning = await riotAutomationService.isRiotClientRunning();
         const lastAccountId = configService.getConfig().lastAccountId;
         if (isRunning && lastAccountId) {
-          return { status: "Active", accountId: lastAccountId };
+          const accounts = await accountService.getAccounts();
+          const acc = accounts.find((a) => a.id === lastAccountId);
+          return {
+            status: "Active",
+            accountId: lastAccountId,
+            accountName: acc?.name,
+          };
         }
         return { status: "Prêt" };
       },
@@ -341,22 +334,6 @@ async function initApp() {
         configService,
         accountService,
       );
-
-    // Hotkeys globaux (opt-in) : Alt+1/2/3 -> switch des 3 premiers comptes.
-    const registerGlobalHotkeys = () => {
-      globalShortcut.unregisterAll();
-      if (!configService.getConfig().enableGlobalHotkeys) return;
-      for (let i = 0; i < 3; i++) {
-        const ok = globalShortcut.register(`Alt+${i + 1}`, async () => {
-          const accs = await accountService.getAccounts();
-          const acc = accs[i];
-          if (acc) await switchAccountTrigger(acc.id);
-        });
-        if (!ok) devError(`[Hotkeys] Échec d'enregistrement de Alt+${i + 1}`);
-      }
-    };
-    registerGlobalHotkeys();
-    configService.on("updated", registerGlobalHotkeys);
 
     setupIpcHandlers(mainWindow, ipcContext, {
       configService,

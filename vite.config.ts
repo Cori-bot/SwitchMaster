@@ -33,8 +33,6 @@ export default defineConfig({
             return "vendor";
           }
           if (norm.includes("/designs/classic/")) return "design-classic";
-          if (norm.includes("/designs/modern/")) return "design-modern";
-          if (norm.includes("/designs/pro/")) return "design-pro";
         },
       },
     },

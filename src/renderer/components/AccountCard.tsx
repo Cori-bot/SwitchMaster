@@ -12,6 +12,7 @@ import {
   ACTIVE_SCALE,
 } from "@/constants/ui";
 import { cn } from "../utils/cn";
+import { getRankIconUrl } from "../utils/rankIcon";
 
 interface AccountCardProps {
   account: Account;
@@ -83,13 +84,15 @@ const AccountCard: React.FC<AccountCardProps> = ({
   const renderStats = () => {
     if (!riotId) return null;
 
+    const rankIconUrl = stats ? getRankIconUrl(gameType, stats.rank) : null;
+
     return (
       <div className="bg-black/20 rounded-xl p-3 mb-4 border border-white/5 backdrop-blur-sm">
         {stats ? (
           <div className="flex items-center gap-3">
-            {stats.rankIcon && (
+            {rankIconUrl && (
               <img
-                src={stats.rankIcon}
+                src={rankIconUrl}
                 alt={stats.rank}
                 className="w-10 h-10 object-contain"
                 onError={handleImageError}

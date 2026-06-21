@@ -28,8 +28,6 @@ export interface Config {
   autoUpdate?: boolean;
   /** Détection (lecture seule, opt-in) du compte Riot connecté via le client local. */
   enableLcuDetection?: boolean;
-  /** Raccourcis globaux Alt+1/2/3 pour basculer vers les 3 premiers comptes. */
-  enableGlobalHotkeys?: boolean;
 }
 
 export interface Account {
