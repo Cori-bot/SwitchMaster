@@ -1,41 +1,37 @@
-# NEXT — SwitchMaster (roadmap post-v2.6)
+# NEXT — SwitchMaster
 
-> Mis à jour le 2026-06-21. Reprise de session : lis ce fichier, puis `AGENTS.md`.
-> Roadmap complète : `~/.claude/plans/zesty-honking-llama.md` (Phases 0→6).
-> Branche `main`, **10 commits d'avance sur origin (non poussés)**.
+> Mis à jour le 2026-06-21. Roadmap post-v2.6 (`~/.claude/plans/zesty-honking-llama.md`) : **Phases 0→6 TERMINÉES.**
+> Branche `main`, **14 commits d'avance sur origin (non poussés — push sur demande)**.
+> État : typecheck OK, **558 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`).
 
-## 1. Avancement
+## 1. Fait (roadmap complète)
 
-- ✅ **Meta** (`b395827`) — docs réalignées, version 2.6.0.
-- ✅ **Phase 0 — sécurité/bugs** (`ebc27c4`) — path-traversal `sm-img`, `<Suspense>`, palette Settings/Lock.
-- ✅ **Phase 1 — parité designs** (`4a3d9c5`) — `pro` joignable + Settings partagés + recherche ; `modern` D&D + filtres + stubs.
-- ✅ **Phase 2 — DRY/conventions** (`4f7c53e`) — `cn()`, `useAccountModal`, deps mortes retirées, `contexts/` supprimé.
-- ✅ **Phase 3 — perf** (`4904fdb`) — refresh stats gated visibilité, memo `cardStyle`.
-- ✅ **Phase 4 — deps** (`62d03af`) — react 19.2.7, electron-updater 6.8.9, zod 4.4.3, tailwind 4.3.1, **framer-motion → motion 12.40**, **lucide-react 1.21**. (Vite 8 / TS 6 écartés.)
-- ✅ **Phase 5a — tracker.gg fiabilisé** (`fc0ec17`) — `StatsService` cache (TTL) + fallback dernière valeur + retry/backoff (skip 403/404/429).
-- **État** : typecheck OK, **550 tests verts**, build prod OK (`SwitchMaster Setup 2.6.0.exe`).
+- ✅ **Meta** (`b395827`) — docs réalignées, v2.6.0.
+- ✅ **P0 sécurité/bugs** (`ebc27c4`) — path-traversal `sm-img`, `<Suspense>`, palette Settings/Lock.
+- ✅ **P1 parité designs** (`4a3d9c5`) — pro joignable + Settings partagés + recherche ; modern D&D + filtres + stubs.
+- ✅ **P2 DRY** (`4f7c53e`) — `cn()`, `useAccountModal`, deps mortes retirées, `contexts/` supprimé.
+- ✅ **P3 perf** (`4904fdb`) — refresh stats gated visibilité, memo.
+- ✅ **P4 deps** (`62d03af`) — minors sûrs + `motion` 12.40 + `lucide` v1.
+- ✅ **P5 stats Riot** (`fc0ec17`, `538747c`) — tracker.gg fiabilisé (cache/retry) + LCU local opt-in (lecture seule).
+- ✅ **P6 features** :
+  - `2e71970` — tags/notes/couleur d'accent par compte (+ recherche palette).
+  - `6a1a9e0` — hotkeys globaux Alt+1/2/3 (opt-in) + clarification launch-après-switch.
+  - `acddf22` — multi-launcher Steam (capture/restore) câblé en prod + UI Settings.
 
-## 2. Reste à faire
+## 2. Suites possibles (non planifiées, optionnelles)
 
-### Phase 5b — LCU local (opt-in, lecture seule) ← next
+- [ ] Étendre tags/couleur d'accent aux designs **modern** et **pro** (appliqués pour l'instant au design **classic**).
+- [ ] Polir l'UI Steam (renommer/supprimer un profil, mapper un profil à un compte, lancement depuis le dashboard) ; implémenter `UbisoftAdapter`/`BattleNetAdapter` sur le même modèle.
+- [ ] **Discord Rich Presence** propre (vrai client ID, opt-in) — retiré en v2.6.
+- [ ] Deps majeures différées : **Vite 8**, **TypeScript 6** (à évaluer, breaking changes).
+- [ ] Distribution signée (mémoire `distribution-signing-pending`).
+- [ ] Idées veille : timeline de rang, mode portable, rollback d'update, Windows Hello.
 
-- Nouveau `src/main/services/LcuLocalService.ts` : lit le lockfile `%LOCALAPPDATA%/Riot Games/Riot Client/Config/lockfile` (via `process.env.LOCALAPPDATA`), parse `name:pid:port:password:protocol`, requête `https://127.0.0.1:{port}` (Basic `riot:password`, `rejectUnauthorized:false`) pour le compte/alias actif. `null` si client non lancé.
-- Config : `enableLcuDetection?: boolean` (défaut **false**) dans `src/shared/types.ts`.
-- IPC : handler `get-lcu-active-account` (gated sur le flag) + ajout à l'allowlist `INVOKE_CHANNELS` du preload.
-- UI : toggle dans `Settings.tsx` + affichage read-only du compte détecté. **Avertir du risque CGU** (API non supportée par Riot).
-- Tests : mock `fs-extra` + `https`.
-
-### Phase 6 — Features (les 4 retenues, dans l'ordre)
-
-- **6a — Tags/notes + couleur d'accent** : `Account.tags?: string[]`, `notes?: string`, `accentColor?: string` (+ schéma zod). UI `AddAccountModal`, affichage cartes (accent), recherche par tag dans `CommandPalette`.
-- **6b — Hotkeys globaux** : `electron.globalShortcut` (Alt+1/2/3 → switch favoris/ordre) dans `main.ts`, nettoyés au quit ; config bindings. (Pas de nouvelle dep.)
-- **6c — Launch jeu après switch** : config `autoLaunchAfterSwitch?: boolean` + câblage `App.handleSwitch`.
-- **6d — Multi-launcher Steam** : câbler `SteamAdapter` (code mort actuel) via IPC (`captureProfile`/`restoreProfile`) + UI (launcherType `steam`). Gros morceau, à isoler.
-
-> Différé (jugé non prioritaire/risqué) : Discord RPC propre, timeline rank, mode portable, rollback update, Windows Hello. `AccountCardBase` volontairement écarté (les 3 rendus de carte sont intentionnellement distincts — abstraction fuyante).
+> Écartés à dessein : `AccountCardBase` (les 3 rendus de carte sont volontairement distincts — abstraction fuyante) ; `backgroundThrottling:false` et `clearCache()` webview (contre-productifs ici).
 
 ## 3. Décisions clés (rappel)
 
-- État global = custom hooks. Tailwind v4 (`@tailwindcss/vite` + `@theme`). Animations `motion/react` en LazyMotion strict (`m`, jamais `motion.*`). Validation IPC zod obligatoire. pnpm strict, Node 20.
-- **LCU local** : lecture seule + opt-in + détection compte connecté uniquement ; jamais d'automation/anti-cheat ; risque CGU à documenter.
-- Commits sur `main`, **non poussés** (push uniquement sur demande). 1 phase ≈ 1 commit, typecheck+test verts avant chaque commit.
+- État global = custom hooks. Tailwind v4 (`@tailwindcss/vite` + `@theme`). Animations `motion/react` LazyMotion strict (`m`). Validation IPC zod obligatoire. pnpm strict, Node 20.
+- **LCU local** : lecture seule + opt-in ; jamais d'automation/anti-cheat ; risque CGU documenté dans l'UI.
+- **Steam** : ids de profil validés (zod) + sanitizés (anti-injection chemin/registre).
+- Commits sur `main`, **non poussés**. 1 chantier ≈ 1 commit, typecheck+test verts avant chaque commit.
