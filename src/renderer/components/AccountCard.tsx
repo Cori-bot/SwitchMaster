@@ -42,7 +42,17 @@ const AccountCard: React.FC<AccountCardProps> = ({
   onDrop,
   onReconnect,
 }) => {
-  const { id, name, riotId, gameType, stats, cardImage, isFavorite } = account;
+  const {
+    id,
+    name,
+    riotId,
+    gameType,
+    stats,
+    cardImage,
+    isFavorite,
+    tags,
+    accentColor,
+  } = account;
 
   const getRankColor = () => {
     return "text-gray-300"; // Unification de la couleur
@@ -130,6 +140,13 @@ const AccountCard: React.FC<AccountCardProps> = ({
         </div>
       )}
 
+      {accentColor && (
+        <div
+          className="absolute top-0 left-0 right-0 h-1 z-20"
+          style={{ backgroundColor: accentColor }}
+        />
+      )}
+
       <div className="p-5 relative z-10">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
@@ -155,6 +172,18 @@ const AccountCard: React.FC<AccountCardProps> = ({
               <p className="text-sm text-gray-400 truncate font-mono">
                 {riotId}
               </p>
+            )}
+            {tags && tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {tags.map((t) => (
+                  <span
+                    key={t}
+                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/10 text-gray-300"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-3">

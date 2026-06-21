@@ -43,6 +43,9 @@ export interface Account {
   lastUsed?: string;
   stats?: GameStats | null;
   timestamp?: number;
+  tags?: string[];
+  notes?: string;
+  accentColor?: string;
 }
 
 export interface AppStatus {

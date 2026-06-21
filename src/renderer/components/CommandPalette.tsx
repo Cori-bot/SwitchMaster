@@ -114,7 +114,7 @@ export const CommandPalette = ({
               {accounts.map((acc) => (
                 <Command.Item
                   key={acc.id}
-                  value={`switch ${acc.name} ${acc.riotId}`}
+                  value={`switch ${acc.name} ${acc.riotId} ${(acc.tags ?? []).join(" ")}`}
                   onSelect={() => run(() => onSwitchSession(acc.id))}
                   style={itemStyle}
                   data-testid={`cmd-account-${acc.id}`}

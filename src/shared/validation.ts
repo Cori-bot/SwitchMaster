@@ -18,6 +18,9 @@ export const accountSchema = z.object({
   isFavorite: z.boolean().optional(),
   lastUsed: z.string().optional(),
   timestamp: z.number().optional(),
+  tags: z.array(z.string()).optional(),
+  notes: z.string().max(2000).optional(),
+  accentColor: z.string().optional(),
 });
 
 export type ValidatedAccount = z.infer<typeof accountSchema>;

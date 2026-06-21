@@ -7,6 +7,9 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Tag,
+  FileText,
+  Palette,
 } from "lucide-react";
 import { Account } from "../hooks/useAccounts";
 
@@ -46,6 +49,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
   const [gameType, setGameType] = useState<"league" | "valorant">("valorant");
   const [cardImage, setCardImage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [tags, setTags] = useState("");
+  const [notes, setNotes] = useState("");
+  const [accentColor, setAccentColor] = useState("");
 
   useEffect(() => {
     const fetchCreds = async () => {
@@ -56,6 +62,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
         setPassword("");
         setGameType("valorant");
         setCardImage("");
+        setTags("");
+        setNotes("");
+        setAccentColor("");
         return;
       }
 
@@ -63,6 +72,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setRiotId(editingAccount.riotId || "");
       setGameType(editingAccount.gameType || "valorant");
       setCardImage(editingAccount.cardImage || "");
+      setTags(editingAccount.tags?.join(", ") || "");
+      setNotes(editingAccount.notes || "");
+      setAccentColor(editingAccount.accentColor || "");
 
       try {
         const creds = await window.ipc.invoke(
@@ -99,6 +111,11 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
       return;
     /* v8 ignore stop */
 
+    const tagList = tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     onAdd({
       id: editingAccount?.id,
       name: name.trim(),
@@ -107,6 +124,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
       riotId: riotId.trim(),
       gameType,
       cardImage,
+      tags: tagList,
+      notes: notes.trim() || undefined,
+      accentColor: accentColor || undefined,
     });
     onClose();
   };
@@ -114,7 +134,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 ${Z_INDEX_MODAL} flex items-center justify-center p-6`}>
+    <div
+      className={`fixed inset-0 ${Z_INDEX_MODAL} flex items-center justify-center p-6`}
+    >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
@@ -250,6 +272,59 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
               iconSizeMedium={ICON_SIZE_MEDIUM}
               iconSizeSmall={ICON_SIZE_SMALL}
             />
+
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block ml-1">
+                Tags (séparés par des virgules)
+              </label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                  <Tag size={ICON_SIZE_SMALL} />
+                </div>
+                <input
+                  type="text"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="smurf, main, soloq"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block ml-1">
+                  Notes
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-4 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                    <FileText size={ICON_SIZE_SMALL} />
+                  </div>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Notes privées…"
+                    rows={2}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 transition-all resize-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block ml-1">
+                  Couleur
+                </label>
+                <div className="flex items-center gap-2">
+                  <Palette size={ICON_SIZE_SMALL} className="text-gray-500" />
+                  <input
+                    type="color"
+                    value={accentColor || "#3b82f6"}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="w-12 h-11 bg-black/40 border border-white/10 rounded-xl cursor-pointer"
+                    aria-label="Couleur d'accent"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-4 pt-2">
