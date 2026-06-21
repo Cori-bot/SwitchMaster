@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Play, Star, Pencil, Trash2 } from "lucide-react";
 import { DesignProps } from "../types";
-import { Account } from "../../../shared/types";
 import AddAccountModal from "../../components/AddAccountModal";
 import Settings from "../../components/Settings";
+import { useAccountModal } from "../../hooks/useAccountModal";
 import ProTopBar from "./TopBar";
 import AccountList from "./AccountList";
 import "./pro.css";
@@ -20,10 +20,9 @@ export const ProLayout: React.FC<DesignProps> = ({
   openSettingsSignal,
 }) => {
   const [selectedId, setSelectedId] = useState<string | null>(activeAccountId);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editing, setEditing] = useState<Account | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [query, setQuery] = useState("");
+  const modal = useAccountModal(actions);
 
   useEffect(() => {
     if (openSettingsSignal) setShowSettings(true);
@@ -44,16 +43,6 @@ export const ProLayout: React.FC<DesignProps> = ({
       null,
     [accounts, selectedId, activeAccountId],
   );
-
-  const handleAdd = async (data: Partial<Account>) => {
-    if (editing) {
-      await actions.updateAccount({ ...editing, ...data } as Account);
-    } else {
-      await actions.addAccount(data);
-    }
-    setIsAddOpen(false);
-    setEditing(null);
-  };
 
   const handleDelete = async (id: string) => {
     if (confirm("Delete this account?")) {
@@ -107,7 +96,7 @@ export const ProLayout: React.FC<DesignProps> = ({
         ) : !selected ? (
           <div className="pro-detail__empty">
             <p>No accounts yet.</p>
-            <button className="pro-btn" onClick={() => setIsAddOpen(true)}>
+            <button className="pro-btn" onClick={modal.openAdd}>
               Add account
             </button>
           </div>
@@ -162,10 +151,7 @@ export const ProLayout: React.FC<DesignProps> = ({
               </button>
               <button
                 className="pro-btn pro-btn--ghost"
-                onClick={() => {
-                  setEditing(selected);
-                  setIsAddOpen(true);
-                }}
+                onClick={() => modal.openEdit(selected)}
               >
                 <Pencil size={12} /> Edit
               </button>
@@ -178,10 +164,7 @@ export const ProLayout: React.FC<DesignProps> = ({
               <button
                 className="pro-btn pro-btn--ghost"
                 style={{ marginLeft: "auto" }}
-                onClick={() => {
-                  setEditing(null);
-                  setIsAddOpen(true);
-                }}
+                onClick={modal.openAdd}
               >
                 + New
               </button>
@@ -191,13 +174,10 @@ export const ProLayout: React.FC<DesignProps> = ({
       </section>
 
       <AddAccountModal
-        isOpen={isAddOpen}
-        onClose={() => {
-          setIsAddOpen(false);
-          setEditing(null);
-        }}
-        onAdd={handleAdd}
-        editingAccount={editing}
+        isOpen={modal.isOpen}
+        onClose={modal.close}
+        onAdd={modal.submit}
+        editingAccount={modal.editing}
       />
     </div>
   );

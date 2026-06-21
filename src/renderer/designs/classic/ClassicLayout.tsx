@@ -5,8 +5,8 @@ import TopBar from "../../components/TopBar";
 import Settings from "../../components/Settings";
 import AddAccountModal from "../../components/AddAccountModal";
 import { DesignProps } from "../types";
-import { Account } from "../../../shared/types";
 import { AnimatePresence, m } from "framer-motion";
+import { useAccountModal } from "../../hooks/useAccountModal";
 import NotificationItem from "../../components/NotificationItem";
 import { useNotifications } from "../../hooks/useNotifications";
 
@@ -28,29 +28,9 @@ export const ClassicLayout: React.FC<DesignProps> = ({
   const [filter, setFilter] = useState<
     "all" | "favorite" | "valorant" | "league"
   >("all");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [accountToEdit, setAccountToEdit] = useState<Account | null>(null);
+  const modal = useAccountModal(actions);
 
   const { notifications, removeNotification } = useNotifications();
-
-  const handleEdit = (account: Account) => {
-    setAccountToEdit(account);
-    setIsAddModalOpen(true);
-  };
-
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-    setAccountToEdit(null);
-  };
-
-  const handleAddAccount = async (data: Partial<Account>) => {
-    if (accountToEdit) {
-      await actions.updateAccount({ ...accountToEdit, ...data } as Account);
-    } else {
-      await actions.addAccount(data);
-    }
-    handleCloseAddModal();
-  };
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans select-none relative">
@@ -72,10 +52,10 @@ export const ClassicLayout: React.FC<DesignProps> = ({
               activeAccountId={activeAccountId || undefined}
               onSwitch={onSwitchSession}
               onDelete={actions.deleteAccount}
-              onEdit={handleEdit}
+              onEdit={modal.openEdit}
               onToggleFavorite={actions.toggleFavorite}
               onReorder={actions.reorderAccounts}
-              onAddAccount={() => setIsAddModalOpen(true)}
+              onAddAccount={modal.openAdd}
             />
           )}
 
@@ -113,10 +93,10 @@ export const ClassicLayout: React.FC<DesignProps> = ({
       </div>
 
       <AddAccountModal
-        isOpen={isAddModalOpen}
-        onClose={handleCloseAddModal}
-        onAdd={handleAddAccount}
-        editingAccount={accountToEdit}
+        isOpen={modal.isOpen}
+        onClose={modal.close}
+        onAdd={modal.submit}
+        editingAccount={modal.editing}
       />
     </div>
   );

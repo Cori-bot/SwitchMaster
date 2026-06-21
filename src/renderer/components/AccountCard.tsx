@@ -11,6 +11,7 @@ import {
   ANIMATION_DURATION_LONG,
   ACTIVE_SCALE,
 } from "@/constants/ui";
+import { cn } from "../utils/cn";
 
 interface AccountCardProps {
   account: Account;
@@ -109,11 +110,13 @@ const AccountCard: React.FC<AccountCardProps> = ({
       onDragEnd={(e) => onDragEnd(e)}
       onDragEnter={(e) => onDragEnter(e, id)}
       onDrop={(e) => onDrop(e, id)}
-      className={`group relative bg-[#1a1a1a] rounded-2xl border-2 transition-all ${ANIMATION_DURATION_LONG} ease-in-out cursor-grab active:cursor-grabbing active:scale-[0.98] active:opacity-80 ${
+      className={cn(
+        "group relative bg-[#1a1a1a] rounded-2xl border-2 transition-all ease-in-out cursor-grab active:cursor-grabbing active:scale-[0.98] active:opacity-80 overflow-hidden",
+        ANIMATION_DURATION_LONG,
         isActive
           ? "border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)]"
-          : "border-transparent hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10"
-      } overflow-hidden`}
+          : "border-transparent hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10",
+      )}
     >
       {/* Background image & gradient overlay */}
       {cardImage && (

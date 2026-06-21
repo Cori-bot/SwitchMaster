@@ -8,8 +8,8 @@ import SettingsPage from "./pages/SettingsPage";
 import AccountView from "./components/AccountView";
 import GameView from "./components/GameView";
 import AddAccountModal from "../../components/AddAccountModal";
-import { Account } from "../../../shared/types";
 import "./modern.css";
+import { useAccountModal } from "../../hooks/useAccountModal";
 
 // Assets for logo
 import LogoIcon from "@assets/switchmaster/switchmaster-icon.svg"; // Use V2 logo as fallback
@@ -63,14 +63,12 @@ export const ModernLayout: React.FC<DesignProps> = ({
     }, 250);
   };
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [accountToEdit, setAccountToEdit] = useState<Account | null>(null);
+  const modal = useAccountModal(actions);
 
   const handleEdit = (id: string) => {
     const acc = accounts.find((a) => a.id === id);
     if (acc) {
-      setAccountToEdit(acc);
-      setIsAddModalOpen(true);
+      modal.openEdit(acc);
       // Close wallpaper view if open
       handleCloseWallpaper();
     }
@@ -81,21 +79,6 @@ export const ModernLayout: React.FC<DesignProps> = ({
       await actions.deleteAccount(id);
       handleCloseWallpaper();
     }
-  };
-
-  const handleAddAccount = async (data: Partial<Account>) => {
-    if (accountToEdit) {
-      await actions.updateAccount({ ...accountToEdit, ...data } as Account);
-    } else {
-      await actions.addAccount(data);
-    }
-    setIsAddModalOpen(false);
-    setAccountToEdit(null);
-  };
-
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-    setAccountToEdit(null);
   };
 
   const handleLogin = async (id: string) => {
@@ -153,10 +136,7 @@ export const ModernLayout: React.FC<DesignProps> = ({
               onToggleFavorite={actions.toggleFavorite}
               onWallpaperClick={handleWallpaperClick}
               onReorder={actions.reorderAccounts}
-              onAddAccount={() => {
-                setAccountToEdit(null);
-                setIsAddModalOpen(true);
-              }}
+              onAddAccount={modal.openAdd}
             />
           )}
           {displayPage === "Games" && (
@@ -202,10 +182,10 @@ export const ModernLayout: React.FC<DesignProps> = ({
         ))}
 
       <AddAccountModal
-        isOpen={isAddModalOpen}
-        onClose={handleCloseAddModal}
-        onAdd={handleAddAccount}
-        editingAccount={accountToEdit}
+        isOpen={modal.isOpen}
+        onClose={modal.close}
+        onAdd={modal.submit}
+        editingAccount={modal.editing}
       />
     </div>
   );
