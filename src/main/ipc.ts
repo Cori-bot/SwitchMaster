@@ -16,6 +16,7 @@ import { SystemService } from "./services/SystemService";
 import { StatsService } from "./services/StatsService";
 import { LcuLocalService } from "./services/LcuLocalService";
 import { LauncherFactory } from "./services/LauncherFactory";
+import { RiotSessionService } from "./services/riot/RiotSessionService";
 
 let areHandlersRegistered = false;
 let currentMainWindow: BrowserWindow | null = null;
@@ -30,6 +31,7 @@ export interface AppServices {
   statsService: StatsService;
   lcuLocalService: LcuLocalService;
   launcherFactory: LauncherFactory;
+  riotSessionService: RiotSessionService;
 }
 
 export function setupIpcHandlers(
@@ -53,6 +55,7 @@ export function setupIpcHandlers(
     context.getStatus,
     services.sessionService,
     services.riotAutomationService,
+    services.riotSessionService,
   );
   registerSecurityHandlers(services.securityService);
   registerMiscHandlers(

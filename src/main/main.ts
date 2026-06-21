@@ -12,6 +12,7 @@ import { SessionService } from "./services/SessionService";
 import { SystemService } from "./services/SystemService";
 import { StatsService } from "./services/StatsService";
 import { LcuLocalService } from "./services/LcuLocalService";
+import { RiotSessionService } from "./services/riot/RiotSessionService";
 
 // Capture globale des erreurs fatales (Production Stability)
 process.on("uncaughtException", (err) => {
@@ -98,6 +99,7 @@ const sessionService = new SessionService(
 );
 const systemService = new SystemService();
 const lcuLocalService = new LcuLocalService();
+const riotSessionService = new RiotSessionService();
 
 const launcherFactory = new LauncherFactory([riotAutomationService]);
 
@@ -216,7 +218,28 @@ async function initApp() {
     const ipcContext = {
       launchGame: async (data: LaunchGameData) => {
         const service = launcherFactory.getService(data.launcherType || "riot");
-        if (data.credentials) {
+        const cfg = configService.getConfig();
+        const isRiot = (data.launcherType || "riot") === "riot";
+
+        if (
+          isRiot &&
+          cfg.enableRiotSessionSwap &&
+          data.accountId &&
+          (await riotSessionService.hasSession(data.accountId))
+        ) {
+          // Session-swap : restaurer les fichiers de session (pas de frappe).
+          try {
+            await riotAutomationService.killAll();
+            await riotSessionService.restoreSession(data.accountId);
+            await riotAutomationService.launchClient();
+          } catch (err) {
+            devError(
+              "[RiotSession] restauration échouée, fallback frappe clavier:",
+              err,
+            );
+            if (data.credentials) await service.login(data.credentials);
+          }
+        } else if (data.credentials) {
           await service.login(data.credentials);
         }
 
@@ -257,6 +280,7 @@ async function initApp() {
       statsService,
       lcuLocalService,
       launcherFactory,
+      riotSessionService,
     });
 
     mainWindow = createWindow(isDev, configService);
@@ -345,6 +369,7 @@ async function initApp() {
       statsService,
       lcuLocalService,
       launcherFactory,
+      riotSessionService,
     });
 
     setupUpdater(mainWindow);

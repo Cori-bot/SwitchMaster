@@ -23,6 +23,7 @@ interface DashboardProps {
   onAddAccount: () => void;
   onReorder: (accountIds: string[]) => void;
   switchingId?: string | null;
+  onCaptureSession?: (account: Account) => void;
 }
 
 const containerVariants: Variants = {
@@ -59,6 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onAddAccount,
   onReorder,
   switchingId,
+  onCaptureSession,
 }) => {
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [localAccounts, setLocalAccounts] = React.useState<Account[]>(accounts);
@@ -299,6 +301,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                 account={account}
                 isActive={account.id === activeAccountId}
                 isSwitching={switchingId === account.id}
+                onCaptureSession={
+                  onCaptureSession ? () => onCaptureSession(account) : undefined
+                }
                 onSwitch={onPreSwitch}
                 onDelete={onDelete}
                 onEdit={onEdit}

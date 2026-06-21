@@ -5,6 +5,7 @@ import TopBar from "../../components/TopBar";
 import Settings from "../../components/Settings";
 import AddAccountModal from "../../components/AddAccountModal";
 import { DesignProps } from "../types";
+import { Account } from "../../../shared/types";
 import { AnimatePresence, m } from "motion/react";
 import { useAccountModal } from "../../hooks/useAccountModal";
 import NotificationItem from "../../components/NotificationItem";
@@ -43,6 +44,20 @@ export const ClassicLayout: React.FC<DesignProps> = ({
     }
   }, [switchError, addNotification, onClearSwitchError]);
 
+  const handleCaptureSession = async (account: Account) => {
+    try {
+      const ok = await window.ipc.invoke("riot-capture-session", account.id);
+      addNotification(
+        ok
+          ? `Session Riot capturée pour ${account.name}`
+          : "Aucune session Riot active à capturer (connectez-vous d'abord)",
+        ok ? "success" : "info",
+      );
+    } catch {
+      addNotification("Échec de la capture de session", "error");
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans select-none relative">
       <Sidebar activeView={view} onViewChange={setView} />
@@ -62,6 +77,9 @@ export const ClassicLayout: React.FC<DesignProps> = ({
               filter={filter}
               activeAccountId={activeAccountId || undefined}
               switchingId={switchingId}
+              onCaptureSession={
+                config.enableRiotSessionSwap ? handleCaptureSession : undefined
+              }
               onSwitch={onSwitchSession}
               onDelete={actions.deleteAccount}
               onEdit={modal.openEdit}

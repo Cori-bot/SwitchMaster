@@ -28,6 +28,8 @@ export interface Config {
   autoUpdate?: boolean;
   /** Détection (lecture seule, opt-in) du compte Riot connecté via le client local. */
   enableLcuDetection?: boolean;
+  /** Bascule Riot par capture/restauration de session (expérimental, opt-in). */
+  enableRiotSessionSwap?: boolean;
 }
 
 export interface Account {
