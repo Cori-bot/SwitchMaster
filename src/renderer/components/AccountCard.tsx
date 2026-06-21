@@ -48,17 +48,21 @@ const AccountCard: React.FC<AccountCardProps> = ({
     return "text-gray-300"; // Unification de la couleur
   };
 
-  const cardStyle = cardImage
-    ? {
-        backgroundImage: `url('${
-          cardImage.startsWith("http")
-            ? cardImage
-            : `sm-img://${cardImage.replace(/\\/g, "/")}`
-        }')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
-    : {};
+  const cardStyle = React.useMemo(
+    () =>
+      cardImage
+        ? {
+            backgroundImage: `url('${
+              cardImage.startsWith("http")
+                ? cardImage
+                : `sm-img://${cardImage.replace(/\\/g, "/")}`
+            }')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }
+        : {},
+    [cardImage],
+  );
 
   const handleImageError = (
     e: React.SyntheticEvent<HTMLImageElement, Event>,

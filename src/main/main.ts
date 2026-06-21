@@ -342,15 +342,25 @@ async function initApp() {
       riotAutomationService.monitorRiotProcess(mainWindow);
     if (monitorIntervalId) trackedIntervals.push(monitorIntervalId);
 
-    const statsIntervalId = setInterval(
-      () => accountService.refreshAllAccountStats(mainWindow),
-      STATS_REFRESH_INTERVAL_MS,
-    );
+    const statsIntervalId = setInterval(() => {
+      // Économie CPU/réseau : ne rafraîchit pas les stats quand la fenêtre
+      // est cachée (application réduite dans le tray).
+      if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+        accountService.refreshAllAccountStats(mainWindow);
+      }
+    }, STATS_REFRESH_INTERVAL_MS);
     trackedIntervals.push(statsIntervalId);
     setTimeout(
       () => accountService.refreshAllAccountStats(mainWindow),
       INITIAL_STATS_REFRESH_DELAY_MS,
     );
+
+    // Rafraîchit les stats quand la fenêtre redevient visible (sortie du tray).
+    mainWindow.on("show", () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        accountService.refreshAllAccountStats(mainWindow);
+      }
+    });
 
     handleUpdateCheck(mainWindow).catch((err) =>
       devError("Update check failed:", err),
