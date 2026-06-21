@@ -1,62 +1,52 @@
-# NEXT — SwitchMaster v2.6
+# NEXT — SwitchMaster v2.6 → roadmap post-v2.6
 
 > Mis à jour le 2026-06-21. Reprise de session : lis ce fichier en premier, puis `AGENTS.md`.
+> Roadmap complète approuvée : `~/.claude/plans/zesty-honking-llama.md` (Phases 0→6).
 
 ## 1. État courant
 
 **Fait / marche :**
 
-- v2.6 finalisée (commits `9bfa8da..d5fc629` sur `main`). Avant le commit de réalignement doc, `main` == `origin/main`.
-- Système de **designs interchangeables** : `classic`, `modern`, `pro` via un registry lazy (`src/renderer/designs/registry.ts`), design actif piloté par `config.activeDesignModule` (défaut main-process = `modern`, fallback runtime = `classic`).
-- Design `pro` : liste de comptes réordonnable en **drag & drop** (`@dnd-kit`).
-- **Perf** : code-splitting par design + vendor chunks (`vite.config.ts`), animations en `LazyMotion + m`.
-- **Command palette** `Ctrl/Cmd+K` (`cmdk`, `src/renderer/components/CommandPalette.tsx`).
-- **Sécurité durcie** : validation IPC zod (`src/main/ipc/schemas.ts`), PIN HMAC-SHA256 timing-safe + anti-brute-force, CSP stricte, `sandbox:true`, allowlists preload, permissions refusées par défaut, `safeStorage` (DPAPI).
-- **Abstraction launchers** : interfaces `ILauncherService` + `LauncherAdapter`, `LauncherFactory`, `SteamAdapter` (implémenté + 9 tests).
-- Tests verts, typecheck OK. CI Windows (Node 20, pnpm 9) : install → typecheck → test.
-- **Docs/meta réalignées** sur le code réel (ce commit) : `AGENTS.md`, `.claude/CLAUDE.md`, `README.md`, `package.json` (→ 2.6.0), `.claude/settings.json`, `.gitignore`, ce `NEXT.md`.
+- v2.6 finalisée. Designs interchangeables (`classic`/`modern`/`pro`, registry lazy), command palette `Ctrl/Cmd+K`, sécurité durcie (zod IPC, PIN timing-safe, CSP, sandbox), abstraction launchers (`SteamAdapter` testé). Tests verts, CI Windows (Node 20, pnpm 9).
+- **Docs/meta réalignées** (commit `b395827`) : `AGENTS.md`, `.claude/CLAUDE.md`, `README.md`, `package.json` (→ 2.6.0), `.claude/settings.json`, `.gitignore`, `NEXT.md`.
+- **✅ Phase 0 — correctifs critiques (commit `ebc27c4`)** :
+  - Sécurité : `sm-img` restreint à `userData/account-images` (anti path-traversal) + helper testé `isInsideDir` (`src/main/utils/pathSafety.ts`).
+  - `<Suspense>` ajouté autour des designs lazy (`App.tsx`).
+  - Command palette : « Settings » câblé (signal global `openSettingsSignal` → designs), « Lock » verrouille vraiment (ou propose de définir un PIN) via `useSecurity.lock`.
+  - `ClassicLayout` réagit au signal d'ouverture des réglages.
+  - Tests : `pathSafety.test.ts` + 2 cas `CommandPalette` (Settings/Lock). **536 tests verts.**
 
-**Reste / points d'attention (issus de l'analyse v2.6) :**
+**Reste / points d'attention (non encore traités) :**
 
-- [ ] **LauncherAdapter = code mort runtime** : `SteamAdapter` / `getAdapter` / `captureProfile` / `restoreProfile` ne sont appelés par aucun code de prod (uniquement les tests). À câbler (IPC + UI + `SessionService`) ou marquer explicitement « expérimental ».
-- [ ] **Design `pro` injoignable depuis l'UI** : les sélecteurs (classic `Settings.tsx`, modern `SettingsPage.tsx`) n'offrent que `classic`/`modern`. `pro` n'est sélectionnable qu'en éditant la config.
-- [ ] **Pas de `<Suspense>`** autour des designs lazy dans `App.tsx` (React 19) — masqué par les tests (chunks résolus en eager). À vérifier en build de prod / chargement lent.
-- [ ] **Command palette** : l'item « Settings » est un no-op (`onOpenSettings` non passée à `<CommandPalette>` dans `App.tsx`) ; le libellé « Lock » ouvre en fait le modal de définition de PIN (`openSecurityModal('set')`).
-- [ ] **Deps déclarées mais jamais importées** : `marked`, `dompurify`, `chokidar`, `yaml`, `clsx`, `tailwind-merge`. À retirer après vérif, ou à utiliser (ex. util `cn()` avec clsx+tailwind-merge).
-- [ ] **`src/renderer/contexts/`** : dossier vide (mort) — candidat à suppression.
-- [ ] **`sm-img` protocol** (`src/main/main.ts`) : sert n'importe quel fichier local sans garde anti-path-traversal. À restreindre.
-- [ ] **Discord RPC** : retiré en v2.6 (client ID placeholder). À ré-implémenter proprement si souhaité.
-- [ ] Distribution non signée (mémoire `distribution-signing-pending`) ; stats via `tracker.gg` fragile (mémoire `stats-api-tracker-gg`).
+- [ ] **LauncherAdapter = code mort runtime** (`SteamAdapter`/`getAdapter`/`captureProfile`…) → câbler (Phase 6) ou marquer « expérimental ».
+- [ ] **Designs non à parité** : `pro` injoignable depuis l'UI + sans page Settings ; `modern` sans drag&drop, filtres incomplets, stubs (`GameView.handleChangePath`, backgrounds par défaut, toggle autoUpdate). → **Phase 1**.
+- [ ] **Deps déclarées non importées** : `marked`, `dompurify`, `chokidar`, `yaml` (à retirer) ; `clsx`/`tailwind-merge` (à activer via util `cn()`). → **Phase 2**.
+- [ ] **`src/renderer/contexts/`** : dossier vide → suppression (Phase 2).
+- [ ] **Perf** : `backgroundThrottling`, fuite mémoire webview auth, stats liées à la visibilité, re-renders. → **Phase 3**.
+- [ ] **Deps majeurs** : `framer-motion → motion`, `lucide-react` v1. → **Phase 4**.
+- [ ] **Stats** : migrer tracker.gg → RGAPI + HenrikDev + LCU local (opt-in, lecture seule, risque CGU à documenter). → **Phase 5**.
+- [ ] **Discord RPC** : ré-implémentation propre (Phase 6). Distribution non signée (mémoire `distribution-signing-pending`).
 
 ## 2. Décisions clés
 
-- **État global = custom hooks**, PAS de React Context (`contexts/` vide).
-- **Tailwind v4** via plugin `@tailwindcss/vite` + `@theme` dans le CSS — aucun `tailwind.config.js`. Tokens dans `src/renderer/styles/tokens.css` (`--sm-*`).
-- **framer-motion en LazyMotion strict** : importer `m`, jamais `motion.*`.
-- **Validation IPC obligatoire** côté main via zod avant tout traitement.
-- **pnpm strict** (jamais npm/yarn). **Node 20** (figé CI).
-- **Version 2.6.0** (bump effectué dans ce commit).
+- **Périmètre validé** : tout, phasé sur plusieurs sessions ; modern + pro **à parité** avec classic ; stats via **RGAPI + HenrikDev + LCU local** ; **upgrades majeurs inclus**.
+- **LCU local** = lecture seule + opt-in + détection du compte connecté uniquement ; jamais d'automation/anti-cheat ; risque CGU moyen/élevé à documenter.
+- État global = custom hooks (pas de Context). Tailwind v4 (`@tailwindcss/vite` + `@theme`, pas de `tailwind.config.js`). framer-motion en LazyMotion strict (`m`, jamais `motion.*`). Validation IPC zod obligatoire. pnpm strict, Node 20.
+- L'allowlist Bash de `.claude/settings.json` n'a pas pu être posée auto (garde-fou anti-auto-permission) → via `/update-config` si besoin.
 
-## 3. Fichiers modifiés (commit de réalignement)
+## 3. Prochaine étape — Phase 1 (parité des designs)
 
-- `package.json` — version 2.5.1 → 2.6.0
-- `AGENTS.md` — Electron 42, état via hooks, `designs/` (au lieu de layouts/contexts), Tailwind v4, LazyMotion, Node 20, liste services/ipc
-- `.claude/CLAUDE.md` — structure réelle, retrait de Discord RPC, ajout cmdk/dnd-kit/zod/electron-log
-- `README.md` — badge version 2.6.0, fonctionnalités (Cmd+K, designs, sécurité)
-- `.claude/settings.json` — NOUVEAU : hook SessionStart (pointe vers AGENTS.md/NEXT.md)
-- `.gitignore` — ignore `.claude-session.tmp` et `.claude/settings.local.json`
-- `NEXT.md` — NOUVEAU (ce fichier)
+Référence = `classic`. Voir le plan pour le détail. Grandes lignes :
 
-## 4. Tâches restantes (checklist priorisée)
+- **1A pro** : ajouter `pro` aux sélecteurs (`src/renderer/components/Settings.tsx`, `src/renderer/designs/modern/pages/SettingsPage.tsx`) ; page Settings pour pro (réutiliser un composant partagé) ; consommer `openSettingsSignal` dans `ProLayout` ; câbler la recherche du `TopBar` pro.
+- **1B modern** : drag&drop `@dnd-kit` (réutiliser `designs/pro/AccountList.tsx`) → `actions.reorderAccounts` ; finir les filtres par launcher ; câbler les stubs ; consommer `openSettingsSignal` dans `ModernLayout`.
+- **1C tests** : composants modern + pro + test de bascule de design.
 
-1. [ ] Câbler ou marquer « expérimental » l'abstraction LauncherAdapter/SteamAdapter.
-2. [ ] Exposer le design `pro` dans les sélecteurs (ou retirer du type).
-3. [ ] Ajouter un `<Suspense fallback>` autour de `<CurrentDesign>` dans `App.tsx`.
-4. [ ] Corriger l'item « Settings » de la command palette (passer `onOpenSettings`).
-5. [ ] Décider du sort des deps inutilisées (`marked`, `dompurify`, `chokidar`, `yaml`, `clsx`, `tailwind-merge`).
-6. [ ] Supprimer `src/renderer/contexts/` si confirmé vide.
-7. [ ] Sécuriser le handler de protocole `sm-img` (anti-path-traversal).
+## 4. Checklist phases restantes
 
----
-
-> Note : ce `NEXT.md` documente l'état post-v2.6. Une initiative plus large (audit complet, finition design, perf, veille concurrentielle, nouvelles features) est en cours de cadrage — voir le plan associé.
+- [ ] **Phase 1** — parité designs (modern + pro = classic) ← _next_
+- [ ] **Phase 2** — réutilisation & conventions (cn(), hooks partagés, rankFormatter, AccountCardBase, nettoyage deps mortes + `contexts/`)
+- [ ] **Phase 3** — performance (backgroundThrottling, webview destroy, stats/visibilité, re-renders)
+- [ ] **Phase 4** — dépendances (patches sûrs + majeurs : motion, lucide v1)
+- [ ] **Phase 5** — stats Riot légitimes (RGAPI + HenrikDev + LCU local opt-in)
+- [ ] **Phase 6** — nouvelles features (hotkeys, launch après switch, tags, multi-launcher, Discord RPC…)
