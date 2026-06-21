@@ -26,17 +26,26 @@ describe("RiotSessionService (session-swap, expérimental)", () => {
     expect(await svc.hasSession("a1")).toBe(true);
   });
 
-  it("captureSession = false si aucune session Riot active", async () => {
+  it("captureSession = no-client si aucun fichier de session", async () => {
     mock(fs.pathExists).mockResolvedValue(false);
-    expect(await svc.captureSession("a1")).toBe(false);
+    expect(await svc.captureSession("a1")).toBe("no-client");
     expect(fs.copy).not.toHaveBeenCalled();
   });
 
-  it("captureSession copie les fichiers de session si présents", async () => {
+  it("captureSession = no-session si persist null (Rester connecté off)", async () => {
     mock(fs.pathExists).mockResolvedValue(true);
+    mock(fs.readFile).mockResolvedValue("riot-login:\n    persist: null\n");
     mock(fs.ensureDir).mockResolvedValue(undefined);
     mock(fs.copy).mockResolvedValue(undefined);
-    expect(await svc.captureSession("a1")).toBe(true);
+    expect(await svc.captureSession("a1")).toBe("no-session");
+  });
+
+  it("captureSession = ok si une session persistée existe", async () => {
+    mock(fs.pathExists).mockResolvedValue(true);
+    mock(fs.readFile).mockResolvedValue("riot-login:\n    persist: true\n");
+    mock(fs.ensureDir).mockResolvedValue(undefined);
+    mock(fs.copy).mockResolvedValue(undefined);
+    expect(await svc.captureSession("a1")).toBe("ok");
     expect(fs.copy).toHaveBeenCalled();
   });
 

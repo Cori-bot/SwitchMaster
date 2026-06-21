@@ -15,6 +15,7 @@ import { devError } from "../../logger";
  */
 const RIOT_SESSION_FILES: Array<[string, string]> = [
   ["Data", "RiotGamesPrivateSettings.yaml"],
+  ["Data", "Sessions"],
   ["Config", "RiotClientSettings.yaml"],
 ];
 const KEY_FILE = "RiotGamesPrivateSettings.yaml";
@@ -45,23 +46,35 @@ export class RiotSessionService {
     return fs.pathExists(path.join(this.profileDir(accountId), KEY_FILE));
   }
 
-  /** Capture (lecture seule) la session Riot actuellement connectée. */
-  async captureSession(accountId: string): Promise<boolean> {
+  /**
+   * Capture (lecture seule) la session Riot actuellement connectée.
+   * - "no-client" : aucun fichier de session (Riot Client jamais lancé).
+   * - "no-session" : fichier présent mais AUCUNE session « Rester connecté »
+   *   persistée (`persist: null`) -> la restauration ne pourra pas auto-login.
+   * - "ok" : une session persistée a été capturée.
+   */
+  async captureSession(
+    accountId: string,
+  ): Promise<"ok" | "no-session" | "no-client"> {
     const base = this.riotClientDir();
     const keySrc = path.join(base, "Data", KEY_FILE);
     if (!(await fs.pathExists(keySrc))) {
-      // Pas de session persistée détectée -> rien à capturer.
-      return false;
+      return "no-client";
     }
+
+    // Une session « Rester connecté » a `persist:` non-null.
+    const content = await fs.readFile(keySrc, "utf8").catch(() => "");
+    const hasPersistedSession = /persist:\s*(?!null)\S/.test(String(content));
+
     const dest = this.profileDir(accountId);
     await fs.ensureDir(dest);
-    for (const [sub, file] of RIOT_SESSION_FILES) {
-      const src = path.join(base, sub, file);
+    for (const [sub, name] of RIOT_SESSION_FILES) {
+      const src = path.join(base, sub, name);
       if (await fs.pathExists(src)) {
-        await fs.copy(src, path.join(dest, file), { overwrite: true });
+        await fs.copy(src, path.join(dest, name), { overwrite: true });
       }
     }
-    return true;
+    return hasPersistedSession ? "ok" : "no-session";
   }
 
   /**

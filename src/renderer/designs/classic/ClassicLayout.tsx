@@ -46,13 +46,26 @@ export const ClassicLayout: React.FC<DesignProps> = ({
 
   const handleCaptureSession = async (account: Account) => {
     try {
-      const ok = await window.ipc.invoke("riot-capture-session", account.id);
-      addNotification(
-        ok
-          ? `Session Riot capturée pour ${account.name}`
-          : "Aucune session Riot active à capturer (connectez-vous d'abord)",
-        ok ? "success" : "info",
+      const status = await window.ipc.invoke(
+        "riot-capture-session",
+        account.id,
       );
+      if (status === "ok") {
+        addNotification(
+          `Session Riot capturée pour ${account.name}`,
+          "success",
+        );
+      } else if (status === "no-session") {
+        addNotification(
+          "Aucune session « Rester connecté » détectée. Coche « Rester connecté » à la connexion au Riot Client, puis recapture.",
+          "error",
+        );
+      } else {
+        addNotification(
+          "Riot Client non détecté — connecte-toi d'abord à ce compte.",
+          "info",
+        );
+      }
     } catch {
       addNotification("Échec de la capture de session", "error");
     }

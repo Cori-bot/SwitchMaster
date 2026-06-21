@@ -268,7 +268,8 @@ const Dashboard: React.FC<DashboardProps> = ({
           onChange={(e) =>
             setSortBy(e.target.value as "order" | "name" | "favorite")
           }
-          className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500/50"
+          className="bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500/50"
+          style={{ colorScheme: "dark" }}
           title="Trier"
         >
           <option value="order">Ordre manuel</option>
