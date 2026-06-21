@@ -5,3 +5,7 @@ build
 update.md
 vitest.config.js
 /coverage
+
+# Claude Code — session locale & overrides perso (le reste de .claude/ est versionné)
+.claude-session.tmp
+.claude/settings.local.json

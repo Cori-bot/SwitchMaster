@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f AGENTS.md ] && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"SwitchMaster v2 — lis AGENTS.md (conventions de code) puis NEXT.md (etat de session) si present avant de coder.\"}}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}
