@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 import SecurityLock from "./components/SecurityLock";
 import GuideOnboarding from "./components/GuideOnboarding";
@@ -31,21 +31,27 @@ const App = () => {
   const [isLaunchGameOpen, setIsLaunchGameOpen] = useState(false);
   const [pendingAccount, setPendingAccount] = useState<Account | null>(null);
 
-  const handleSwitch = async (id: string, autoLaunch?: boolean) => {
-    const acc = accounts.find((a) => a.id === id);
-    if (!acc) return;
+  // Mémoïsé pour stabiliser l'identité passée à useAppIpc : sans ça, les 6
+  // listeners IPC du hook se détachaient/rattachaient à chaque render.
+  // `actions.login` est déjà stable (useCallback dans useAccountManager).
+  const handleSwitch = useCallback(
+    async (id: string, autoLaunch?: boolean) => {
+      const acc = accounts.find((a) => a.id === id);
+      if (!acc) return;
 
-    if (autoLaunch === undefined) {
-      if (config?.showLaunchGamePopup !== false) {
-        setPendingAccount(acc);
-        setIsLaunchGameOpen(true);
-        return;
+      if (autoLaunch === undefined) {
+        if (config?.showLaunchGamePopup !== false) {
+          setPendingAccount(acc);
+          setIsLaunchGameOpen(true);
+          return;
+        }
+        autoLaunch = true;
       }
-      autoLaunch = true;
-    }
 
-    await actions.login(acc, autoLaunch);
-  };
+      await actions.login(acc, autoLaunch);
+    },
+    [accounts, config, actions.login],
+  );
 
   const confirmLaunch = async (launch: boolean) => {
     if (pendingAccount) {
@@ -57,6 +63,7 @@ const App = () => {
 
   const {
     status,
+    loginEvent,
     updateInfo,
     isQuitModalOpen,
     setIsQuitModalOpen,
@@ -138,6 +145,7 @@ const App = () => {
         switchingId={switchingId}
         switchError={switchError}
         onClearSwitchError={clearSwitchError}
+        loginEvent={loginEvent}
         systemActions={systemActions}
         updateInfo={updateInfo}
       />

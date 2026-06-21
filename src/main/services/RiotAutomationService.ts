@@ -10,6 +10,7 @@ import {
 } from "../interfaces/ILauncherService";
 import { SecurityService } from "./SecurityService";
 import { ConfigService } from "./ConfigService";
+import { RiotLogService, RiotLoginEvent } from "./RiotLogService";
 
 const execAsync = util.promisify(exec);
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,12 +20,37 @@ export class RiotAutomationService implements ILauncherService {
   private readonly PROCESS_TERMINATION_DELAY = 2000;
   private readonly MONITOR_INTERVAL_MS = 30000;
   private readonly GAME_LAUNCH_DELAY_MS = 3000;
+  /** Fenêtre max d'attente du verdict de connexion dans les logs Riot. */
+  private readonly LOGIN_OUTCOME_TIMEOUT_MS = 30000;
   private configService: ConfigService;
   private securityService: SecurityService;
+  private logService: RiotLogService;
+  private loginEventSink?: (e: RiotLoginEvent) => void;
 
-  constructor(configService: ConfigService, securityService: SecurityService) {
+  constructor(
+    configService: ConfigService,
+    securityService: SecurityService,
+    logService?: RiotLogService,
+  ) {
     this.configService = configService;
     this.securityService = securityService;
+    this.logService = logService ?? new RiotLogService();
+  }
+
+  /**
+   * Branche un récepteur d'événements de connexion (verdicts lus dans les logs
+   * du Riot Client). main.ts les relaie au renderer via IPC `riot-login-status`.
+   */
+  public setLoginEventSink(cb: (e: RiotLoginEvent) => void): void {
+    this.loginEventSink = cb;
+  }
+
+  private emitLoginEvent(e: RiotLoginEvent): void {
+    try {
+      this.loginEventSink?.(e);
+    } catch (err) {
+      devDebug("loginEventSink error:", err);
+    }
   }
 
   // Helper to ensure scripts path is correct in dev environment
@@ -129,7 +155,44 @@ export class RiotAutomationService implements ILauncherService {
       }
     }
 
-    return this.loginLegacy(plainUsername, plainPassword);
+    // Surveille les logs du Riot Client pour connaître le VRAI verdict de
+    // connexion : le "SUCCESS" du script PowerShell ne prouve que la frappe,
+    // pas que Riot a accepté les identifiants (mauvais mdp, captcha, rate-limit,
+    // 2FA ne sont visibles que dans les logs). On démarre la surveillance juste
+    // avant la frappe (baseline = fin du log courant) pour ne lire que la suite,
+    // SANS bloquer login() : le verdict remonte au renderer via le sink dès
+    // qu'il apparaît (notification), pendant que le reste du flux continue.
+    // Le watcher n'a de sens que si un récepteur écoute (main.ts en prod). Sans
+    // sink branché (ex: tests, contexte sans fenêtre), on ne lance aucune
+    // surveillance de fichiers — login() garde exactement le même comportement.
+    const abort = this.loginEventSink ? new AbortController() : null;
+    if (abort) {
+      void this.logService
+        .watchForOutcome({
+          timeoutMs: this.LOGIN_OUTCOME_TIMEOUT_MS,
+          signal: abort.signal,
+          onEvent: (e) => this.emitLoginEvent(e),
+        })
+        .catch((e) => devDebug("watchForOutcome error:", e));
+
+      this.emitLoginEvent({
+        phase: "info",
+        message: "Saisie des identifiants…",
+      });
+    }
+
+    try {
+      await this.loginLegacy(plainUsername, plainPassword);
+    } catch (err) {
+      // La frappe elle-même a échoué (fenêtre Riot introuvable / non focus).
+      abort?.abort();
+      this.emitLoginEvent({
+        phase: "error",
+        message:
+          "Échec de la frappe automatique : fenêtre Riot introuvable. Réessaie en gardant le client Riot au premier plan.",
+      });
+      throw err;
+    }
   }
 
   // Renamed old login to loginLegacy to match signature or just overload
@@ -244,10 +307,22 @@ export class RiotAutomationService implements ILauncherService {
   ): NodeJS.Timeout {
     return setInterval(async () => {
       try {
+        // Économie CPU : ne spawn pas `tasklist` toutes les 30s quand l'app est
+        // réduite dans le tray (cas d'usage principal). Le tick reprend dès que
+        // la fenêtre redevient visible.
+        if (
+          mainWindow &&
+          !mainWindow.isDestroyed() &&
+          !mainWindow.isVisible()
+        ) {
+          return;
+        }
         const isRunning = await this.isRiotClientRunning();
         if (!isRunning) {
           if (onClosed) onClosed();
-          if (mainWindow) mainWindow.webContents.send("riot-client-closed");
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send("riot-client-closed");
+          }
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);

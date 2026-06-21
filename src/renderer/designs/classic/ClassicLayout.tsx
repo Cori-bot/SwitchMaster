@@ -22,6 +22,7 @@ export const ClassicLayout: React.FC<DesignProps> = ({
   switchingId,
   switchError,
   onClearSwitchError,
+  loginEvent,
 }) => {
   const [view, setView] = useState("dashboard");
 
@@ -42,6 +43,21 @@ export const ClassicLayout: React.FC<DesignProps> = ({
       onClearSwitchError?.();
     }
   }, [switchError, addNotification, onClearSwitchError]);
+
+  // Verdicts de connexion Riot (lus dans les logs du client). On affiche les
+  // états actionnables ; les étapes "info" restent silencieuses (le spinner
+  // "Connexion…" suffit) pour ne pas spammer de notifications.
+  useEffect(() => {
+    if (!loginEvent) return;
+    if (loginEvent.phase === "info") return;
+    const type =
+      loginEvent.phase === "success"
+        ? "success"
+        : loginEvent.phase === "error"
+          ? "error"
+          : "info"; // captcha / 2FA → info (action manuelle requise)
+    addNotification(loginEvent.message, type);
+  }, [loginEvent, addNotification]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans select-none relative">

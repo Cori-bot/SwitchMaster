@@ -261,6 +261,14 @@ async function initApp() {
 
     mainWindow = createWindow(isDev, configService);
 
+    // Relaie les verdicts de connexion Riot (lus dans les logs du Riot Client)
+    // vers le renderer pour affichage (succès / mauvais identifiants / captcha…).
+    riotAutomationService.setLoginEventSink((e) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("riot-login-status", e);
+      }
+    });
+
     // Détection du mode de démarrage en arrière-plan
     const isAutoStartArg = process.argv.includes("--minimized");
     const os = require("os");

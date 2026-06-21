@@ -1,4 +1,4 @@
-import { Account, Config, AppStatus } from "../../shared/types";
+import { Account, Config, AppStatus, RiotLoginEvent } from "../../shared/types";
 
 export interface AccountActions {
   login: (account: Account, autoLaunch?: boolean) => Promise<void>;
@@ -31,6 +31,12 @@ export interface DesignProps {
   /** Message d'erreur de la dernière bascule échouée. */
   switchError?: string | null;
   onClearSwitchError?: () => void;
+
+  /**
+   * Verdict de connexion Riot lu dans les logs du Riot Client (succès, mauvais
+   * identifiants, captcha, 2FA, rate-limit…). Nouvel objet à chaque émission.
+   */
+  loginEvent?: RiotLoginEvent | null;
 
   // System Metadata
   updateInfo?: any;

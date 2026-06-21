@@ -194,11 +194,31 @@ describe("RiotAutomationService", () => {
   });
 
   it("monitorRiotProcess coverage", async () => {
-    const win = { webContents: { send: vi.fn() } };
+    const win = {
+      webContents: { send: vi.fn() },
+      isDestroyed: () => false,
+      isVisible: () => true,
+    };
     vi.spyOn(service, "isRiotClientRunning").mockResolvedValue(false);
     service.monitorRiotProcess(win as any);
     await vi.advanceTimersByTimeAsync(30000);
     expect(win.webContents.send).toHaveBeenCalled();
+  });
+
+  it("monitorRiotProcess skips tasklist while hidden in tray", async () => {
+    const win = {
+      webContents: { send: vi.fn() },
+      isDestroyed: () => false,
+      isVisible: () => false,
+    };
+    const spy = vi
+      .spyOn(service, "isRiotClientRunning")
+      .mockResolvedValue(false);
+    service.monitorRiotProcess(win as any);
+    await vi.advanceTimersByTimeAsync(30000);
+    // Fenêtre cachée : on ne spawn pas tasklist ni n'émet d'événement.
+    expect(spy).not.toHaveBeenCalled();
+    expect(win.webContents.send).not.toHaveBeenCalled();
   });
 
   it("packaged path branch", async () => {

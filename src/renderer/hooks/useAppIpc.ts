@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { AppStatus } from "../../shared/types";
+import { AppStatus, RiotLoginEvent } from "../../shared/types";
 
 export interface UpdateInfo {
   isOpen: boolean;
@@ -24,6 +24,7 @@ export function useAppIpc(
   const [status, setStatus] = useState<AppStatus>({
     status: "Initialisation...",
   });
+  const [loginEvent, setLoginEvent] = useState<RiotLoginEvent | null>(null);
   const [isQuitModalOpen, setIsQuitModalOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo>({
     isOpen: false,
@@ -120,6 +121,16 @@ export function useAppIpc(
       },
     );
 
+    // Verdicts de connexion Riot lus dans les logs du Riot Client (succès,
+    // mauvais identifiants, captcha, 2FA, rate-limit…). Nouvel objet à chaque
+    // émission pour que les consommateurs réagissent même à message identique.
+    const loginStatusUnsubscribe = window.ipc.on(
+      "riot-login-status",
+      (_event, evt) => {
+        setLoginEvent({ ...(evt as RiotLoginEvent) });
+      },
+    );
+
     return () => {
       statusUnsubscribe();
       riotClosedUnsubscribe();
@@ -128,11 +139,13 @@ export function useAppIpc(
       updateProgressUnsubscribe();
       updateDownloadedUnsubscribe();
       quickConnectUnsubscribe();
+      loginStatusUnsubscribe();
     };
   }, [handleSwitch]);
 
   return {
     status,
+    loginEvent,
     isQuitModalOpen,
     setIsQuitModalOpen,
     updateInfo,

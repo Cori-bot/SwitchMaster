@@ -57,6 +57,7 @@ const ON_CHANNELS = new Set([
   "update-downloaded",
   "quick-connect-triggered",
   "login-success",
+  "riot-login-status",
 ]);
 
 // Expose a minimal, controlled IPC API to the renderer

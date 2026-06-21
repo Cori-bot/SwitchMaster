@@ -53,3 +53,19 @@ export interface AppStatus {
   accountId?: string;
   accountName?: string;
 }
+
+/**
+ * Verdict de connexion Riot extrait des logs du Riot Client (poussé du main
+ * vers le renderer via IPC `riot-login-status`).
+ */
+export type RiotLoginPhase = "success" | "error" | "captcha" | "info";
+
+export interface RiotLoginEvent {
+  phase: RiotLoginPhase;
+  /** Code d'erreur RSO brut le cas échéant (ex: "40005803"). */
+  code?: string;
+  /** Message clair en français, prêt à afficher. */
+  message: string;
+  /** Extrait de la ligne de log d'origine (diagnostic). */
+  raw?: string;
+}
