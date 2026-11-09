@@ -37,14 +37,15 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 12, opacity: 0, scale: 0.98 },
   visible: {
     y: 0,
     opacity: 1,
+    scale: 1,
     transition: {
       type: "spring",
-      stiffness: 300,
-      damping: 24,
+      stiffness: 350,
+      damping: 28,
     },
   },
 };
@@ -260,7 +261,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un compte (nom, Riot ID, tag)…"
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500/50 transition-all"
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500/50 transition-[border-color,background-color] duration-150 ease-out"
         />
         <Dropdown<"order" | "name" | "favorite">
           value={sortBy}
@@ -287,11 +288,11 @@ const Dashboard: React.FC<DashboardProps> = ({
               layout
               initial="hidden"
               animate="visible"
-              exit={{ scale: 0.8, opacity: 0 }}
+              exit={{ scale: 0.95, opacity: 0, transition: { duration: 0.15 } }}
               className={
                 draggedId === account.id
-                  ? "opacity-50 scale-95 transition-all duration-200"
-                  : "transition-all duration-200"
+                  ? "opacity-50 scale-95 transition-[opacity,transform] duration-150"
+                  : "transition-[opacity,transform] duration-150"
               }
             >
               <AccountCard

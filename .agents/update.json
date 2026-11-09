@@ -1,0 +1,19 @@
+[
+  {
+    "date": "2026-11-09T20:17:00+01:00",
+    "actions": [
+      "Recherche web et analyse de faisabilité d'automatisation de connexion du Riot Client (Lockfile API vs CLI vs PowerShell)",
+      "Vérification des endpoints internes /rso-auth/v1/session/credentials (bloqués par Cloudflare/hCaptcha/fingerprinting)",
+      "Audit et polissage du design selon la philosophie d'Emil Kowalski et Impeccable",
+      "Remplacement des transition-all par des transitions ciblées et performantes (transform, opacity, border-color, background-color)",
+      "Ajout de micro-interactions et états active:scale-[0.98] sur les boutons et cartes",
+      "Ajustement des courbes d'animation d'entrée avec itemVariants (scale 0.98 -> 1, stiffness 350, damping 28)"
+    ],
+    "changes": [
+      "src/renderer/constants/ui.ts",
+      "src/renderer/components/AccountCard.tsx",
+      "src/renderer/components/Dashboard.tsx",
+      "src/renderer/components/NotificationItem.tsx"
+    ]
+  }
+]

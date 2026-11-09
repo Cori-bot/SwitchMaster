@@ -130,7 +130,7 @@ const AccountCard: React.FC<AccountCardProps> = ({
       onDragEnter={(e) => onDragEnter(e, id)}
       onDrop={(e) => onDrop(e, id)}
       className={cn(
-        "group relative bg-[#1a1a1a] rounded-2xl border-2 transition-all ease-in-out cursor-grab active:cursor-grabbing active:scale-[0.98] active:opacity-80 overflow-hidden",
+        "group relative bg-[#1a1a1a] rounded-2xl border-2 transition-[transform,border-color,box-shadow,opacity] ease-out cursor-grab active:cursor-grabbing active:scale-[0.98] active:opacity-90 overflow-hidden",
         ANIMATION_DURATION_LONG,
         isActive
           ? "border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)]"
@@ -164,7 +164,7 @@ const AccountCard: React.FC<AccountCardProps> = ({
                   e.stopPropagation();
                   onToggleFavorite(account);
                 }}
-                className={`p-1 rounded-md transition-all duration-200 hover:scale-110 ${
+                className={`p-1 rounded-md transition-[color,transform] duration-150 ease-out hover:scale-110 active:scale-95 ${
                   isFavorite
                     ? "text-yellow-400"
                     : "text-gray-500 hover:text-yellow-400"
@@ -201,16 +201,16 @@ const AccountCard: React.FC<AccountCardProps> = ({
               <button className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
                 <MoreVertical size={ICON_SIZE_MEDIUM} />
               </button>
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[#242424] border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 z-10 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[#242424] border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-[opacity,transform,visibility] duration-150 ease-out z-10 overflow-hidden">
                 <button
                   onClick={() => onEdit(account)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 active:bg-white/10 transition-colors"
                 >
                   <Edit2 size={ICON_SIZE_SMALL} /> Modifier
                 </button>
                 <button
                   onClick={() => onDelete(account.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 active:bg-red-500/20 transition-colors"
                 >
                   <Trash2 size={ICON_SIZE_SMALL} /> Supprimer
                 </button>
@@ -232,13 +232,13 @@ const AccountCard: React.FC<AccountCardProps> = ({
             }
           }}
           className={cn(
-            "w-full flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all duration-200 group/btn",
+            "w-full flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-[background-color,border-color,color,transform] duration-150 ease-out group/btn",
             ACTIVE_SCALE,
             isSwitching
               ? "bg-white/10 text-gray-300 cursor-wait"
               : isActive
-                ? "bg-blue-600/10 text-blue-500 border border-blue-600/50 hover:bg-blue-600/20 cursor-pointer"
-                : "bg-white text-black hover:bg-gray-200 cursor-pointer",
+                ? "bg-blue-600/10 text-blue-500 border border-blue-600/50 hover:bg-blue-600/20 active:bg-blue-600/30 cursor-pointer"
+                : "bg-white text-black hover:bg-gray-200 active:bg-gray-300 cursor-pointer",
           )}
         >
           {isSwitching ? (

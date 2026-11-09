@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
-import {
-  ICON_SIZE_SMALL,
-  ICON_SIZE_XSMALL,
-} from "@/constants/ui";
+import { ICON_SIZE_SMALL, ICON_SIZE_XSMALL } from "@/constants/ui";
 
 interface NotificationItemProps {
   notification: {
@@ -108,9 +105,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         opacity: isRemoving ? 0 : 1,
         transition: isDragging
           ? "none"
-          : `all 0.3s cubic-bezier(0.4, 0, 0.2, 1)`,
+          : `transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1)`,
       }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border pointer-events-auto shadow-2xl cursor-grab active:cursor-grabbing select-none group relative overflow-hidden ${getTypeStyles()}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border pointer-events-auto shadow-2xl cursor-grab active:cursor-grabbing select-none group relative overflow-hidden transition-[background-color,border-color] duration-150 ${getTypeStyles()}`}
     >
       {/* Background slide indicator */}
       <div
