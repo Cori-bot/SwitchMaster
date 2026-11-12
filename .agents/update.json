@@ -15,5 +15,20 @@
       "src/renderer/components/Dashboard.tsx",
       "src/renderer/components/NotificationItem.tsx"
     ]
+  },
+  {
+    "date": "2026-11-12T19:50:00+01:00",
+    "actions": [
+      "Préparation de la version 2.6.2",
+      "Mise à jour de la version dans package.json et Settings.tsx",
+      "Création des notes de version RELEASE_NOTES_2.6.2.md",
+      "Commit, création du tag v2.6.2 et push vers GitHub"
+    ],
+    "changes": [
+      "package.json",
+      "src/renderer/components/Settings.tsx",
+      "RELEASE_NOTES_2.6.2.md",
+      ".agents/update.json"
+    ]
   }
 ]
